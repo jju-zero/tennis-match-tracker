@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   ArrowDown,
   ArrowLeft,
@@ -95,6 +95,17 @@ const emptyStats: Stats = {
 };
 
 const initialMatches: Match[] = [];
+const storageKey = "tennis-match-tracker:v1";
+
+type StoredState = {
+  matches: Match[];
+  activeMatchId: string | null;
+  stats: Stats;
+  finishResult: Result;
+  finishScore: string;
+  finishNote: string;
+  finishOpponentMemo: string;
+};
 
 const gradeOptions: Grade[] = ["4A", "4B", "4C", "4D"];
 const eventOptions: EventType[] = ["U12男子シングルス", "U14シングルス"];
@@ -119,6 +130,7 @@ export default function Home() {
   const [finishScore, setFinishScore] = useState("");
   const [finishNote, setFinishNote] = useState("");
   const [finishOpponentMemo, setFinishOpponentMemo] = useState("");
+  const [storageReady, setStorageReady] = useState(false);
 
   const completedMatches = useMemo(
     () => matches.filter((match) => match.status === "done"),
@@ -128,6 +140,53 @@ export default function Home() {
   const summary = useMemo(() => buildSummary(lastFive), [lastFive]);
   const liveSummary = buildLiveSummary(stats);
   const parsedScore = parseScore(finishScore);
+
+  useEffect(() => {
+    const timeoutId = window.setTimeout(() => {
+      const stored = readStoredState();
+
+      if (stored) {
+        const storedActiveMatch = stored.activeMatchId
+          ? stored.matches.find((match) => match.id === stored.activeMatchId) ?? null
+          : null;
+
+        setMatches(stored.matches);
+        setActiveMatch(storedActiveMatch);
+        setStats(storedActiveMatch ? storedActiveMatch.stats : stored.stats);
+        setFinishResult(stored.finishResult);
+        setFinishScore(stored.finishScore);
+        setFinishNote(stored.finishNote);
+        setFinishOpponentMemo(stored.finishOpponentMemo);
+      }
+
+      setStorageReady(true);
+    }, 0);
+
+    return () => window.clearTimeout(timeoutId);
+  }, []);
+
+  useEffect(() => {
+    if (!storageReady) return;
+
+    writeStoredState({
+      matches,
+      activeMatchId: activeMatch?.id ?? null,
+      stats,
+      finishResult,
+      finishScore,
+      finishNote,
+      finishOpponentMemo,
+    });
+  }, [
+    activeMatch?.id,
+    finishNote,
+    finishOpponentMemo,
+    finishResult,
+    finishScore,
+    matches,
+    stats,
+    storageReady,
+  ]);
 
   function navigateHome() {
     setScreen("home");
@@ -185,15 +244,29 @@ export default function Home() {
   }
 
   function addStat(key: keyof Stats) {
+    const nextStats = { ...stats, [key]: stats[key] + 1 };
+
     setHistory((current) => [stats, ...current].slice(0, 20));
-    setStats((current) => ({ ...current, [key]: current[key] + 1 }));
+    syncActiveStats(nextStats);
   }
 
   function undo() {
     const [previous, ...rest] = history;
     if (!previous) return;
-    setStats(previous);
+    syncActiveStats(previous);
     setHistory(rest);
+  }
+
+  function syncActiveStats(nextStats: Stats) {
+    setStats(nextStats);
+
+    if (!activeMatch) return;
+
+    const updatedMatch = { ...activeMatch, stats: nextStats };
+    setActiveMatch(updatedMatch);
+    setMatches((current) =>
+      current.map((match) => (match.id === updatedMatch.id ? updatedMatch : match)),
+    );
   }
 
   function goFinish() {
@@ -221,7 +294,7 @@ export default function Home() {
       current.map((match) => (match.id === activeMatch.id ? saved : match)),
     );
     setSelectedMatch(saved);
-    setActiveMatch(saved);
+    setActiveMatch(null);
     setScreen("home");
   }
 
@@ -1231,6 +1304,40 @@ function parseScore(score: string) {
   const player = sets.reduce((sum, set) => sum + Number(set[1]), 0);
   const opponent = sets.reduce((sum, set) => sum + Number(set[2]), 0);
   return { player, opponent, total: player + opponent };
+}
+
+function readStoredState(): StoredState | null {
+  if (typeof window === "undefined") return null;
+
+  try {
+    const rawState = window.localStorage.getItem(storageKey);
+    if (!rawState) return null;
+
+    const parsedState = JSON.parse(rawState) as Partial<StoredState>;
+    if (!Array.isArray(parsedState.matches)) return null;
+
+    return {
+      matches: parsedState.matches,
+      activeMatchId: parsedState.activeMatchId ?? null,
+      stats: parsedState.stats ?? { ...emptyStats },
+      finishResult: parsedState.finishResult ?? "win",
+      finishScore: parsedState.finishScore ?? "",
+      finishNote: parsedState.finishNote ?? "",
+      finishOpponentMemo: parsedState.finishOpponentMemo ?? "",
+    };
+  } catch {
+    return null;
+  }
+}
+
+function writeStoredState(state: StoredState) {
+  if (typeof window === "undefined") return;
+
+  try {
+    window.localStorage.setItem(storageKey, JSON.stringify(state));
+  } catch {
+    // If storage is unavailable, keep the in-memory session usable.
+  }
 }
 
 function getTodayString() {
