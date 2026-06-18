@@ -5,6 +5,7 @@ import type {
   Grade,
   MatchRecord,
   MatchStatus,
+  PrepareMatchForm,
   Round,
   Stats,
   Tournament,
@@ -31,7 +32,8 @@ export const emptyStats: Stats = {
 
 export const gradeOptions: Grade[] = ["4A", "4B", "4C", "4D"];
 export const eventOptions: EventType[] = ["U12男子シングルス", "U14シングルス"];
-export const drawSizeOptions: DrawSize[] = ["qualifying", 16, 32, 64];
+export const drawSizeOptions: DrawSize[] = ["qualifying", "main"];
+export const mainRoundOptions: Round[] = ["MAIN", "R16", "QF", "SF", "F"];
 
 export function createDefaultTournamentForm(): TournamentForm {
   return {
@@ -39,7 +41,8 @@ export function createDefaultTournamentForm(): TournamentForm {
     tournament: "",
     grade: "4C",
     event: "U12男子シングルス",
-    drawSize: 16,
+    drawSize: "main",
+    round: "MAIN",
     opponent: "",
     opponentMemo: "",
   };
@@ -53,14 +56,15 @@ export function createEditMatchForm(match?: MatchRecord | null): EditMatchForm {
     tournament: match?.tournament ?? "",
     grade: match?.grade ?? "4C",
     event: match?.event ?? "U12男子シングルス",
-    drawSize: match?.drawSize ?? 16,
-    round: match?.round ?? "R16",
+    drawSize: match?.drawSize ?? "main",
+    round: match?.round ?? "MAIN",
     opponent: match?.opponent ?? "",
     opponentMemo: match?.opponentMemo ?? "",
     status: match?.status ?? "draft",
     result: match?.result ?? "win",
     score: match?.score ?? "",
     note: match?.note ?? "",
+    stats: match?.stats ? { ...match.stats } : { ...emptyStats },
   };
 }
 
@@ -85,7 +89,7 @@ export function createTournament(form: TournamentForm, status: MatchStatus): Tou
     matches: [
       createMatchForTournament(tournament, {
         status,
-        round: firstRound(form.drawSize),
+        round: firstRound(form),
         opponent: form.opponent.trim(),
         opponentMemo: form.opponentMemo.trim(),
       }),
@@ -137,6 +141,14 @@ export function validateTournamentForm(form: TournamentForm, requireOpponent: bo
 
 export function validateEditMatchForm(form: EditMatchForm) {
   const errors: Record<string, string> = validateTournamentForm(form, false);
+  if (!form.opponent.trim()) {
+    errors.opponent = "相手の名前を入力してください。";
+  }
+  return errors;
+}
+
+export function validatePrepareMatchForm(form: PrepareMatchForm) {
+  const errors: Record<string, string> = {};
   if (!form.opponent.trim()) {
     errors.opponent = "相手の名前を入力してください。";
   }
@@ -204,26 +216,21 @@ export function updateTournamentMetadataAndMatch(
   };
 }
 
-export function firstRound(drawSize: DrawSize): Round {
-  if (drawSize === "qualifying") return "QUALIFYING";
-  if (drawSize === 64) return "R64";
-  if (drawSize === 32) return "R32";
-  return "R16";
+export function firstRound(draw: DrawSize | Pick<TournamentForm, "drawSize" | "round">): Round {
+  if (typeof draw === "string") return draw === "qualifying" ? "QUALIFYING" : "MAIN";
+  return draw.drawSize === "qualifying" ? "QUALIFYING" : draw.round;
 }
 
 export function roundOptionsForDraw(drawSize: DrawSize): Round[] {
-  if (drawSize === "qualifying") return ["QUALIFYING", "R16", "QF", "SF", "F"];
-  if (drawSize === 64) return ["R64", "R32", "R16", "QF", "SF", "F"];
-  if (drawSize === 32) return ["R32", "R16", "QF", "SF", "F"];
-  return ["R16", "QF", "SF", "F"];
+  if (drawSize === "qualifying") return ["QUALIFYING"];
+  return mainRoundOptions;
 }
 
 export function roundLabel(round: Round) {
   const labels: Record<Round, string> = {
     QUALIFYING: "予選",
-    R64: "本戦64",
-    R32: "本戦32",
-    R16: "本戦16",
+    MAIN: "本戦",
+    R16: "16強",
     QF: "8強",
     SF: "4強",
     F: "決勝",
@@ -232,11 +239,12 @@ export function roundLabel(round: Round) {
 }
 
 export function drawSizeLabel(drawSize: DrawSize) {
-  return drawSize === "qualifying" ? "予選" : `本戦${drawSize}`;
+  return drawSize === "qualifying" ? "予選" : "本戦";
 }
 
 export function nextRound(round: Round): Round | null {
-  const order: Round[] = ["QUALIFYING", "R64", "R32", "R16", "QF", "SF", "F"];
+  const order: Round[] = ["R16", "QF", "SF", "F"];
+  if (round === "QUALIFYING" || round === "MAIN") return round;
   const index = order.indexOf(round);
   if (index < 0 || index === order.length - 1) return null;
   return order[index + 1];
@@ -375,6 +383,7 @@ function round(value: number, decimals: number) {
 
 function nextRoundInDraw(round: Round, drawSize: DrawSize): Round | null {
   const order = roundOptionsForDraw(drawSize);
+  if (round === "QUALIFYING" || round === "MAIN") return round;
   const index = order.indexOf(round);
   if (index < 0 || index === order.length - 1) return null;
   return order[index + 1];

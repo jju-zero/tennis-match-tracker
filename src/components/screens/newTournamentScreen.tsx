@@ -11,7 +11,14 @@ import {
   ScreenHeader,
   inputClass,
 } from "@/components/tennis/appLayout";
-import { drawSizeLabel, drawSizeOptions, eventOptions, gradeOptions } from "@/lib/tennis";
+import {
+  drawSizeLabel,
+  drawSizeOptions,
+  eventOptions,
+  gradeOptions,
+  mainRoundOptions,
+  roundLabel,
+} from "@/lib/tennis";
 import type { TournamentForm } from "@/types/tennis";
 
 export function NewTournamentScreen({
@@ -84,18 +91,40 @@ export function NewTournamentScreen({
         </Field>
 
         <Field label="ドロー" required>
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-2 gap-2">
             {drawSizeOptions.map((drawSize) => (
               <ChoiceButton
                 key={drawSize}
                 selected={form.drawSize === drawSize}
-                onClick={() => onChange({ ...form, drawSize })}
+                onClick={() =>
+                  onChange({
+                    ...form,
+                    drawSize,
+                    round: drawSize === "qualifying" ? "QUALIFYING" : "MAIN",
+                  })
+                }
               >
                 {drawSizeLabel(drawSize)}
               </ChoiceButton>
             ))}
           </div>
         </Field>
+
+        {form.drawSize === "main" && (
+          <Field label="ラウンド" hint="本戦128などは本戦を選択">
+            <div className="grid grid-cols-3 gap-2">
+              {mainRoundOptions.map((round) => (
+                <ChoiceButton
+                  key={round}
+                  selected={form.round === round}
+                  onClick={() => onChange({ ...form, round })}
+                >
+                  {roundLabel(round)}
+                </ChoiceButton>
+              ))}
+            </div>
+          </Field>
+        )}
 
         <Field label="初戦の相手" hint="あとで入力可" error={errors.opponent}>
           <Input

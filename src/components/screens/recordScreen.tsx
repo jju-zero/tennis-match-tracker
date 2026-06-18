@@ -1,4 +1,4 @@
-import { ArrowLeft, Flag, RotateCcw } from "lucide-react";
+import { ArrowLeft, Flag, RotateCcw, Save } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { AppShell, FixedAction } from "@/components/tennis/appLayout";
@@ -13,6 +13,7 @@ export function RecordScreen({
   onBack,
   onUndo,
   onAdd,
+  onTemporarySave,
   onFinish,
 }: {
   match: MatchRecord;
@@ -22,6 +23,7 @@ export function RecordScreen({
   onBack: () => void;
   onUndo: () => void;
   onAdd: (key: keyof Stats) => void;
+  onTemporarySave: () => void;
   onFinish: () => void;
 }) {
   return (
@@ -85,13 +87,23 @@ export function RecordScreen({
       </div>
 
       <FixedAction>
-        <Button
-          className="h-16 w-full gap-2 rounded-2xl border border-slate-600 bg-[#202b3d] text-base font-semibold text-slate-100 hover:bg-[#34445c]"
-          onClick={onFinish}
-        >
-          <Flag className="size-5 text-amber-400" />
-          試合終了
-        </Button>
+        <div className="grid grid-cols-2 gap-3">
+          <Button
+            variant="outline"
+            className="h-16 gap-2 rounded-2xl border-slate-600 bg-[#202b3d] text-base font-semibold text-slate-100 hover:bg-[#34445c]"
+            onClick={onTemporarySave}
+          >
+            <Save className="size-5 text-[#6ee787]" />
+            一時保存
+          </Button>
+          <Button
+            className="h-16 gap-2 rounded-2xl bg-[#49df78] text-base font-semibold text-slate-950 hover:bg-[#5bdd75]"
+            onClick={onFinish}
+          >
+            <Flag className="size-5" />
+            試合終了
+          </Button>
+        </div>
       </FixedAction>
     </AppShell>
   );

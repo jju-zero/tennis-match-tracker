@@ -5,7 +5,6 @@ import {
   AppShell,
   EmptyState,
   FixedAction,
-  ResultBadge,
   SectionTitle,
   SummaryCard,
   TournamentStatusBadge,
@@ -127,11 +126,7 @@ function TournamentCard({
           </p>
         </div>
         <div className="flex shrink-0 flex-col items-end gap-3">
-          {latestMatch ? (
-            <ResultBadge result={latestMatch.result} status={latestMatch.status} />
-          ) : (
-            <TournamentStatusBadge status={tournament.status} />
-          )}
+          <TournamentStatusBadge status={tournament.status} />
           <div className="text-right">
             <p className="text-lg font-semibold text-[#6ee787]">
               {latestMatch ? firstServeRate(latestMatch.stats) : 0}%

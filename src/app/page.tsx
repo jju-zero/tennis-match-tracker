@@ -7,6 +7,7 @@ import { FinishScreen } from "@/components/screens/finishScreen";
 import { HomeScreen } from "@/components/screens/homeScreen";
 import { MatchDetailScreen } from "@/components/screens/matchDetailScreen";
 import { NewTournamentScreen } from "@/components/screens/newTournamentScreen";
+import { PrepareMatchScreen } from "@/components/screens/prepareMatchScreen";
 import { RecordScreen } from "@/components/screens/recordScreen";
 import { ReportScreen } from "@/components/screens/reportScreen";
 import { TournamentScreen } from "@/components/screens/tournamentScreen";
@@ -28,12 +29,14 @@ import {
   sortMatchesByRound,
   updateTournamentMetadataAndMatch,
   validateEditMatchForm,
+  validatePrepareMatchForm,
   validateTournamentForm,
 } from "@/lib/tennis";
 import { readStoredState, writeStoredState } from "@/lib/tennis-storage";
 import type {
   EditMatchForm,
   MatchRecord,
+  PrepareMatchForm,
   Result,
   Screen,
   Stats,
@@ -55,6 +58,12 @@ export default function Home() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [editForm, setEditForm] = useState<EditMatchForm>(() => createEditMatchForm());
   const [editErrors, setEditErrors] = useState<Record<string, string>>({});
+  const [prepareMatch, setPrepareMatch] = useState<MatchRecord | null>(null);
+  const [prepareForm, setPrepareForm] = useState<PrepareMatchForm>({
+    opponent: "",
+    opponentMemo: "",
+  });
+  const [prepareErrors, setPrepareErrors] = useState<Record<string, string>>({});
   const [finishResult, setFinishResult] = useState<Result>("win");
   const [finishScore, setFinishScore] = useState("");
   const [finishNote, setFinishNote] = useState("");
@@ -203,10 +212,9 @@ export default function Home() {
       current.map((item) => (item.id === updatedTournament.id ? updatedTournament : item)),
     );
     setSelectedTournament(updatedTournament);
-    setSelectedMatch(nextMatch);
-    setEditForm(createEditMatchForm(nextMatch));
-    setEditErrors({ opponent: "記録開始前に相手の名前を入力してください。" });
-    setScreen("edit");
+    openPrepareMatch(nextMatch, {
+      opponent: "記録開始前に相手の名前を入力してください。",
+    });
   }
 
   function addStat(key: keyof Stats) {
@@ -238,6 +246,22 @@ export default function Home() {
     setScreen("finish");
   }
 
+  function temporarySaveMatch() {
+    if (!activeMatch) return;
+
+    const saved: MatchRecord = {
+      ...activeMatch,
+      status: "recording",
+      stats,
+    };
+
+    replaceMatch(saved, "active");
+    setSelectedMatch(saved);
+    setActiveMatch(null);
+    setHistory([]);
+    setScreen("tournament");
+  }
+
   function saveFinishedMatch() {
     if (!activeMatch) return;
 
@@ -266,6 +290,62 @@ export default function Home() {
     setScreen("edit");
   }
 
+  function openPrepareMatch(match: MatchRecord, nextErrors: Record<string, string> = {}) {
+    setSelectedMatch(match);
+    setPrepareMatch(match);
+    setPrepareForm({
+      opponent: match.opponent,
+      opponentMemo: match.opponentMemo,
+    });
+    setPrepareErrors(nextErrors);
+    setScreen("prepareMatch");
+  }
+
+  function savePreparedDraft() {
+    const match = prepareMatch ? findMatchById(tournaments, prepareMatch.id) ?? prepareMatch : null;
+    if (!match) return;
+
+    const savedMatch: MatchRecord = {
+      ...match,
+      opponent: prepareForm.opponent.trim(),
+      opponentMemo: prepareForm.opponentMemo.trim(),
+    };
+
+    replaceMatch(savedMatch);
+    setSelectedMatch(savedMatch);
+    setPrepareMatch(savedMatch);
+    setPrepareErrors({});
+    setScreen("tournament");
+  }
+
+  function startPreparedMatch() {
+    const match = prepareMatch ? findMatchById(tournaments, prepareMatch.id) ?? prepareMatch : null;
+    if (!match) return;
+
+    const nextErrors = validatePrepareMatchForm(prepareForm);
+    setPrepareErrors(nextErrors);
+    if (Object.keys(nextErrors).length > 0) return;
+
+    const nextMatch: MatchRecord = {
+      ...match,
+      status: "recording",
+      opponent: prepareForm.opponent.trim(),
+      opponentMemo: prepareForm.opponentMemo.trim(),
+    };
+
+    replaceMatch(nextMatch, "active");
+    setSelectedMatch(nextMatch);
+    setPrepareMatch(nextMatch);
+    setActiveMatch(nextMatch);
+    setStats(nextMatch.stats);
+    setFinishResult("win");
+    setFinishScore("");
+    setFinishNote("");
+    setFinishOpponentMemo(nextMatch.opponentMemo);
+    setHistory([]);
+    setScreen("record");
+  }
+
   function saveEditedMatch() {
     const nextErrors = validateEditMatchForm(editForm);
     setEditErrors(nextErrors);
@@ -290,6 +370,7 @@ export default function Home() {
       note: editForm.status === "done" ? editForm.note.trim() : targetMatch.note,
       playerGames: editForm.status === "done" ? parsed.player : targetMatch.playerGames,
       opponentGames: editForm.status === "done" ? parsed.opponent : targetMatch.opponentGames,
+      stats: { ...editForm.stats },
     };
     const result = updateTournamentMetadataAndMatch(tournaments, updatedMatch, {
       name: editForm.tournament.trim(),
@@ -304,6 +385,7 @@ export default function Home() {
     setSelectedMatch(updatedMatch);
     if (activeMatch?.id === updatedMatch.id) {
       setActiveMatch(updatedMatch);
+      setStats(updatedMatch.stats);
       setFinishOpponentMemo(updatedMatch.opponentMemo);
     }
     setScreen("matchDetail");
@@ -311,8 +393,9 @@ export default function Home() {
 
   function resumeMatch(match: MatchRecord) {
     if (!match.opponent.trim()) {
-      openEditMatch(match);
-      setEditErrors({ opponent: "記録開始前に相手の名前を入力してください。" });
+      openPrepareMatch(match, {
+        opponent: "記録開始前に相手の名前を入力してください。",
+      });
       return;
     }
 
@@ -341,6 +424,9 @@ export default function Home() {
     : null;
   const selectedMatchLatest = selectedMatch
     ? findMatchById(tournaments, selectedMatch.id) ?? selectedMatch
+    : null;
+  const prepareMatchLatest = prepareMatch
+    ? findMatchById(tournaments, prepareMatch.id) ?? prepareMatch
     : null;
   const activeMatchLatest = activeMatch
     ? findMatchById(tournaments, activeMatch.id) ?? activeMatch
@@ -381,6 +467,18 @@ export default function Home() {
         />
       )}
 
+      {screen === "prepareMatch" && prepareMatchLatest && (
+        <PrepareMatchScreen
+          match={prepareMatchLatest}
+          form={prepareForm}
+          errors={prepareErrors}
+          onBack={() => setScreen("tournament")}
+          onChange={setPrepareForm}
+          onStart={startPreparedMatch}
+          onSaveDraft={savePreparedDraft}
+        />
+      )}
+
       {screen === "record" && activeMatchLatest && (
         <RecordScreen
           match={activeMatchLatest}
@@ -390,6 +488,7 @@ export default function Home() {
           onBack={() => setScreen("tournament")}
           onUndo={undo}
           onAdd={addStat}
+          onTemporarySave={temporarySaveMatch}
           onFinish={goFinish}
         />
       )}

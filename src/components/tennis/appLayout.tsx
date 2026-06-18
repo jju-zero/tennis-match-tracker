@@ -155,20 +155,11 @@ export function ResultBadge({ result, status }: { result: MatchRecord["result"];
 }
 
 export function TournamentStatusBadge({ status }: { status: Tournament["status"] }) {
-  const styles = {
-    draft: "bg-slate-600 text-slate-100 hover:bg-slate-600",
-    active: "bg-amber-400 text-slate-950 hover:bg-amber-400",
-    eliminated: "bg-rose-600 text-white hover:bg-rose-600",
-    champion: "bg-[#49df78] text-slate-950 hover:bg-[#49df78]",
-    done: "bg-slate-500 text-white hover:bg-slate-500",
-  }[status];
-  const label = {
-    draft: "未開始",
-    active: "進行中",
-    eliminated: "敗退",
-    champion: "優勝",
-    done: "終了",
-  }[status];
+  const isFinished = status === "eliminated" || status === "champion" || status === "done";
+  const styles = isFinished
+    ? "bg-slate-600 text-slate-100 hover:bg-slate-600"
+    : "bg-amber-400 text-slate-950 hover:bg-amber-400";
+  const label = isFinished ? "終了" : "進行中";
 
   return <Badge className={styles}>{label}</Badge>;
 }

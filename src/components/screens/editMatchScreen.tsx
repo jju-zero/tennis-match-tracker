@@ -17,10 +17,10 @@ import {
   drawSizeLabel,
   eventOptions,
   gradeOptions,
+  mainRoundOptions,
   roundLabel,
-  roundOptionsForDraw,
 } from "@/lib/tennis";
-import type { EditMatchForm } from "@/types/tennis";
+import type { EditMatchForm, Stats } from "@/types/tennis";
 
 export function EditMatchScreen({
   form,
@@ -90,12 +90,18 @@ export function EditMatchScreen({
         </Field>
 
         <Field label="ドロー" required>
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-2 gap-2">
             {drawSizeOptions.map((drawSize) => (
               <ChoiceButton
                 key={drawSize}
                 selected={form.drawSize === drawSize}
-                onClick={() => onChange({ ...form, drawSize })}
+                onClick={() =>
+                  onChange({
+                    ...form,
+                    drawSize,
+                    round: drawSize === "qualifying" ? "QUALIFYING" : "MAIN",
+                  })
+                }
               >
                 {drawSizeLabel(drawSize)}
               </ChoiceButton>
@@ -103,19 +109,21 @@ export function EditMatchScreen({
           </div>
         </Field>
 
-        <Field label="ラウンド">
-          <div className="grid grid-cols-3 gap-2">
-            {roundOptionsForDraw(form.drawSize).map((round) => (
-              <ChoiceButton
-                key={round}
-                selected={form.round === round}
-                onClick={() => onChange({ ...form, round })}
-              >
-                {roundLabel(round)}
-              </ChoiceButton>
-            ))}
-          </div>
-        </Field>
+        {form.drawSize === "main" && (
+          <Field label="ラウンド" hint="本戦128などは本戦を選択">
+            <div className="grid grid-cols-3 gap-2">
+              {mainRoundOptions.map((round) => (
+                <ChoiceButton
+                  key={round}
+                  selected={form.round === round}
+                  onClick={() => onChange({ ...form, round })}
+                >
+                  {roundLabel(round)}
+                </ChoiceButton>
+              ))}
+            </div>
+          </Field>
+        )}
 
         <Field label="相手の名前" required error={errors.opponent}>
           <Input
@@ -159,6 +167,52 @@ export function EditMatchScreen({
           </>
         )}
 
+        <section className="space-y-4 rounded-2xl border border-slate-700 bg-[#202b3d] p-4">
+          <SectionTitle>記録を編集</SectionTitle>
+          <StatsEditGroup
+            title="サーブ"
+            items={[
+              ["firstIn", "1st成功"],
+              ["firstOut", "1st失敗"],
+              ["deuceIn", "デュース成功"],
+              ["deuceOut", "デュース失敗"],
+              ["adIn", "アド成功"],
+              ["adOut", "アド失敗"],
+              ["doubleFaults", "DF"],
+            ]}
+            stats={form.stats}
+            onChange={(stats) => onChange({ ...form, stats })}
+          />
+          <StatsEditGroup
+            title="チャンスボール"
+            items={[
+              ["chances", "発生"],
+              ["chanceWins", "成功"],
+            ]}
+            stats={form.stats}
+            onChange={(stats) => onChange({ ...form, stats })}
+          />
+          <StatsEditGroup
+            title="ボレー"
+            items={[
+              ["volleyTries", "試み"],
+              ["volleyWins", "成功"],
+            ]}
+            stats={form.stats}
+            onChange={(stats) => onChange({ ...form, stats })}
+          />
+          <StatsEditGroup
+            title="ミス"
+            items={[
+              ["net", "ネット"],
+              ["baseOut", "ベースアウト"],
+              ["sideOut", "サイドアウト"],
+            ]}
+            stats={form.stats}
+            onChange={(stats) => onChange({ ...form, stats })}
+          />
+        </section>
+
         <Field label="相手メモ">
           <Textarea
             value={form.opponentMemo}
@@ -180,4 +234,48 @@ export function EditMatchScreen({
       </FixedAction>
     </AppShell>
   );
+}
+
+function StatsEditGroup({
+  title,
+  items,
+  stats,
+  onChange,
+}: {
+  title: string;
+  items: Array<[keyof Stats, string]>;
+  stats: Stats;
+  onChange: (stats: Stats) => void;
+}) {
+  return (
+    <div className="space-y-2">
+      <p className="text-sm font-semibold text-slate-300">{title}</p>
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+        {items.map(([key, label]) => (
+          <label key={key} className="space-y-1">
+            <span className="block text-xs font-medium text-slate-400">{label}</span>
+            <Input
+              type="number"
+              min={0}
+              inputMode="numeric"
+              value={stats[key]}
+              onChange={(event) =>
+                onChange({
+                  ...stats,
+                  [key]: normalizeStatValue(event.target.value),
+                })
+              }
+              className="h-12 rounded-xl border-slate-600 bg-[#34445c] text-base font-semibold text-slate-100"
+            />
+          </label>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function normalizeStatValue(value: string) {
+  const numberValue = Number(value);
+  if (!Number.isFinite(numberValue) || numberValue < 0) return 0;
+  return Math.floor(numberValue);
 }

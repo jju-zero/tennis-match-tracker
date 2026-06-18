@@ -3,6 +3,7 @@ export type Screen =
   | "new"
   | "tournament"
   | "record"
+  | "prepareMatch"
   | "finish"
   | "report"
   | "matchDetail"
@@ -12,8 +13,8 @@ export type Grade = "4A" | "4B" | "4C" | "4D";
 export type EventType = "U12男子シングルス" | "U14シングルス";
 export type Result = "win" | "loss" | null;
 export type Trend = "up" | "down" | "flat";
-export type DrawSize = "qualifying" | 16 | 32 | 64;
-export type Round = "QUALIFYING" | "R64" | "R32" | "R16" | "QF" | "SF" | "F";
+export type DrawSize = "qualifying" | "main";
+export type Round = "QUALIFYING" | "MAIN" | "R16" | "QF" | "SF" | "F";
 
 export type Stats = {
   firstIn: number;
@@ -72,6 +73,7 @@ export type TournamentForm = {
   grade: Grade;
   event: EventType;
   drawSize: DrawSize;
+  round: Round;
   opponent: string;
   opponentMemo: string;
 };
@@ -84,6 +86,12 @@ export type EditMatchForm = TournamentForm & {
   score: string;
   note: string;
   round: Round;
+  stats: Stats;
+};
+
+export type PrepareMatchForm = {
+  opponent: string;
+  opponentMemo: string;
 };
 
 export type StoredState = {
