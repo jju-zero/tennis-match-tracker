@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 
 import { EditMatchScreen } from "@/components/screens/editMatchScreen";
@@ -33,7 +33,12 @@ import {
   validatePrepareMatchForm,
   validateTournamentForm,
 } from "@/lib/tennis";
-import { readStoredState, writeStoredState } from "@/lib/tennis-storage";
+import {
+  readRemoteState,
+  readStoredState,
+  writeRemoteState,
+  writeStoredState,
+} from "@/lib/tennis-storage";
 import type {
   EditMatchForm,
   MatchRecord,
@@ -41,6 +46,7 @@ import type {
   Result,
   Screen,
   Stats,
+  StoredState,
   Tournament,
   TournamentForm,
 } from "@/types/tennis";
@@ -58,6 +64,7 @@ export function TennisApp() {
   const router = useRouter();
   const route = useMemo(() => parseRoute(pathname), [pathname]);
   const screen = route.screen;
+  const skipInitialRemoteWriteRef = useRef(true);
   const [tournaments, setTournaments] = useState<Tournament[]>(initialTournaments);
   const [selectedTournament, setSelectedTournament] = useState<Tournament | null>(null);
   const [selectedMatch, setSelectedMatch] = useState<MatchRecord | null>(null);
@@ -95,40 +102,49 @@ export function TennisApp() {
       ? findTournamentById(tournaments, routeMatch.tournamentId)
       : null;
 
+  const applyStoredState = useCallback((stored: StoredState) => {
+    const storedActiveMatch = stored.activeMatchId
+      ? findMatchById(stored.tournaments, stored.activeMatchId)
+      : null;
+
+    setTournaments(stored.tournaments);
+    setActiveMatch(storedActiveMatch);
+    setSelectedMatch(storedActiveMatch);
+    setSelectedTournament(
+      storedActiveMatch
+        ? findTournamentById(stored.tournaments, storedActiveMatch.tournamentId)
+        : null,
+    );
+    setStats(storedActiveMatch ? storedActiveMatch.stats : stored.stats);
+    setFinishResult(stored.finishResult);
+    setFinishScore(stored.finishScore);
+    setFinishNote(stored.finishNote);
+    setFinishOpponentMemo(stored.finishOpponentMemo);
+  }, []);
+
   useEffect(() => {
     const timeoutId = window.setTimeout(() => {
-      const stored = readStoredState();
+      void (async () => {
+        const localState = readStoredState();
+        if (localState) applyStoredState(localState);
 
-      if (stored) {
-        const storedActiveMatch = stored.activeMatchId
-          ? findMatchById(stored.tournaments, stored.activeMatchId)
-          : null;
+        const remoteState = await readRemoteState();
+        if (remoteState) {
+          applyStoredState(remoteState);
+          writeStoredState(remoteState);
+        }
 
-        setTournaments(stored.tournaments);
-        setActiveMatch(storedActiveMatch);
-        setSelectedMatch(storedActiveMatch);
-        setSelectedTournament(
-          storedActiveMatch
-            ? findTournamentById(stored.tournaments, storedActiveMatch.tournamentId)
-            : null,
-        );
-        setStats(storedActiveMatch ? storedActiveMatch.stats : stored.stats);
-        setFinishResult(stored.finishResult);
-        setFinishScore(stored.finishScore);
-        setFinishNote(stored.finishNote);
-        setFinishOpponentMemo(stored.finishOpponentMemo);
-      }
-
-      setStorageReady(true);
+        setStorageReady(true);
+      })();
     }, 0);
 
     return () => window.clearTimeout(timeoutId);
-  }, []);
+  }, [applyStoredState]);
 
   useEffect(() => {
     if (!storageReady) return;
 
-    writeStoredState({
+    const nextState = {
       tournaments,
       activeMatchId: activeMatch?.id ?? null,
       stats,
@@ -136,7 +152,16 @@ export function TennisApp() {
       finishScore,
       finishNote,
       finishOpponentMemo,
-    });
+    };
+
+    writeStoredState(nextState);
+
+    if (skipInitialRemoteWriteRef.current) {
+      skipInitialRemoteWriteRef.current = false;
+      return;
+    }
+
+    void writeRemoteState(nextState);
   }, [
     activeMatch?.id,
     finishNote,

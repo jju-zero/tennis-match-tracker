@@ -10,6 +10,9 @@ import type {
 } from "@/types/tennis";
 
 const storageKey = "tennis-match-tracker:v1";
+const adminPinStorageKey = "court-note-admin-pin:v1";
+
+let remoteWriteDisabled = false;
 
 type LegacyDrawSize = DrawSize | 16 | 32 | 64;
 type LegacyRound = Round | "R64" | "R32";
@@ -56,6 +59,100 @@ export function writeStoredState(state: StoredState) {
   } catch {
     // Keep the in-memory session usable if storage is unavailable.
   }
+}
+
+export async function readRemoteState(): Promise<StoredState | null> {
+  if (typeof window === "undefined") return null;
+
+  try {
+    const response = await fetch("/api/state", {
+      method: "GET",
+      cache: "no-store",
+    });
+    if (!response.ok) return null;
+
+    const data = (await response.json()) as {
+      state?: Partial<StoredState> | null;
+      remoteStorage?: boolean;
+    };
+    if (!data.remoteStorage || !data.state) return null;
+
+    return normalizeStoredState(data.state);
+  } catch {
+    return null;
+  }
+}
+
+export async function writeRemoteState(state: StoredState): Promise<boolean> {
+  if (typeof window === "undefined" || remoteWriteDisabled) return false;
+
+  const response = await putRemoteState(state, readStoredAdminPin());
+  if (response === "ok") return true;
+
+  if (response === "pin-required") {
+    const nextPin = window.prompt("記録用PINを入力してください。");
+    if (!nextPin) return false;
+
+    writeStoredAdminPin(nextPin);
+    return (await putRemoteState(state, nextPin)) === "ok";
+  }
+
+  if (response === "not-configured") {
+    remoteWriteDisabled = true;
+  }
+
+  return false;
+}
+
+async function putRemoteState(
+  state: StoredState,
+  adminPin: string | null,
+): Promise<"ok" | "pin-required" | "not-configured" | "failed"> {
+  try {
+    const response = await fetch("/api/state", {
+      method: "PUT",
+      headers: {
+        "content-type": "application/json",
+        ...(adminPin ? { "x-court-note-pin": adminPin } : {}),
+      },
+      body: JSON.stringify({ state }),
+    });
+
+    if (response.ok) return "ok";
+    if (response.status === 401 || response.status === 403) return "pin-required";
+    if (response.status === 503) return "not-configured";
+    return "failed";
+  } catch {
+    return "failed";
+  }
+}
+
+function readStoredAdminPin() {
+  try {
+    return window.localStorage.getItem(adminPinStorageKey);
+  } catch {
+    return null;
+  }
+}
+
+function writeStoredAdminPin(pin: string) {
+  try {
+    window.localStorage.setItem(adminPinStorageKey, pin);
+  } catch {
+    // The current save still works locally even if the PIN cannot be remembered.
+  }
+}
+
+function normalizeStoredState(state: Partial<StoredState>): StoredState {
+  return {
+    tournaments: normalizeTournaments(state.tournaments ?? []),
+    activeMatchId: state.activeMatchId ?? null,
+    stats: state.stats ?? { ...emptyStats },
+    finishResult: state.finishResult ?? "win",
+    finishScore: state.finishScore ?? "",
+    finishNote: state.finishNote ?? "",
+    finishOpponentMemo: state.finishOpponentMemo ?? "",
+  };
 }
 
 function normalizeTournaments(tournaments: Tournament[]): Tournament[] {
