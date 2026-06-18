@@ -166,6 +166,7 @@ function normalizeTournaments(tournaments: Tournament[]): Tournament[] {
     return {
       ...tournament,
       drawSize,
+      memo: tournament.memo ?? "",
       status: tournament.status ?? "draft",
       matches: (tournament.matches ?? []).map((match) =>
         normalizeMatch(match as LegacyMatch, tournament.id, drawSize),
@@ -184,6 +185,7 @@ function migrateLegacyMatches(matches: LegacyMatch[]): Tournament[] {
       date: match.date,
       grade: match.grade,
       event: match.event,
+      memo: "",
       drawSize,
       status:
         match.status === "done"

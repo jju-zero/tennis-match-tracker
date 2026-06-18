@@ -63,6 +63,7 @@ export type Tournament = {
   date: string;
   grade: Grade;
   event: EventType;
+  memo: string;
   drawSize: DrawSize;
   status: TournamentStatus;
   matches: MatchRecord[];
@@ -73,6 +74,7 @@ export type TournamentForm = {
   tournament: string;
   grade: Grade;
   event: EventType;
+  memo: string;
 };
 
 export type EditMatchForm = TournamentForm & {

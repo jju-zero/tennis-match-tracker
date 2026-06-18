@@ -72,7 +72,7 @@ type KantoPlayerLookup = {
   error?: string;
 };
 
-type TournamentMetadata = Pick<Tournament, "name" | "date" | "grade" | "event">;
+type TournamentMetadata = Pick<Tournament, "name" | "date" | "grade" | "event" | "memo">;
 
 export function TennisApp() {
   const pathname = usePathname();
@@ -382,6 +382,7 @@ export function TennisApp() {
       date: tournamentEditForm.date,
       grade: tournamentEditForm.grade,
       event: tournamentEditForm.event,
+      memo: tournamentEditForm.memo.trim(),
     };
 
     setTournaments((current) => {
@@ -847,6 +848,7 @@ function createTournamentFormFromTournament(tournament: Tournament): TournamentF
     tournament: tournament.name,
     grade: tournament.grade,
     event: tournament.event,
+    memo: tournament.memo,
   };
 }
 

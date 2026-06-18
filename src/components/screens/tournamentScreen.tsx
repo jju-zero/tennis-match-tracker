@@ -108,12 +108,6 @@ export function TournamentScreen({
       {isEditing ? (
         <>
           <Card className="rounded-2xl border-slate-700 bg-[#202b3d] text-slate-100">
-            <CardHeader>
-              <CardTitle>大会情報を編集</CardTitle>
-              <CardDescription className="text-slate-400">
-                保存すると、この大会内のすべての試合情報にも反映されます。
-              </CardDescription>
-            </CardHeader>
             <CardContent>
               <TournamentFormFields form={editForm} errors={editErrors} onChange={onEditChange} />
             </CardContent>
@@ -158,6 +152,15 @@ export function TournamentScreen({
           <GameCount label="敗戦" value={`${tournament.matches.filter((match) => match.result === "loss").length}`} tone="text-[#ff7373]" />
         </CardContent>
       </Card>
+
+      {tournament.memo && (
+        <section className="space-y-2">
+          <SectionTitle>大会メモ</SectionTitle>
+          <div className="rounded-2xl border border-slate-700 bg-[#202b3d] p-4 text-sm leading-6 text-slate-200">
+            {tournament.memo}
+          </div>
+        </section>
+      )}
 
       <section className="space-y-3">
         <SectionTitle>試合</SectionTitle>

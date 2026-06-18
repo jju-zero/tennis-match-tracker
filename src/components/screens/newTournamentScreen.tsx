@@ -2,6 +2,7 @@ import { CalendarDays } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import {
   AppShell,
   ChoiceButton,
@@ -116,6 +117,15 @@ export function TournamentFormFields({
             </ChoiceButton>
           ))}
         </div>
+      </Field>
+
+      <Field label="大会メモ" hint="任意">
+        <Textarea
+          value={form.memo}
+          placeholder="集合時間、会場、注意事項など"
+          onChange={(event) => onChange({ ...form, memo: event.target.value })}
+          className="min-h-32 rounded-2xl border-slate-600 bg-[#34445c] text-slate-100 placeholder:text-slate-400"
+        />
       </Field>
     </div>
   );
