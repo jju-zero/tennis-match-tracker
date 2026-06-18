@@ -72,6 +72,8 @@ type KantoPlayerLookup = {
   error?: string;
 };
 
+type TournamentMetadata = Pick<Tournament, "name" | "date" | "grade" | "event">;
+
 export function TennisApp() {
   const pathname = usePathname();
   const router = useRouter();
@@ -86,6 +88,11 @@ export function TennisApp() {
   const [history, setHistory] = useState<Stats[]>([]);
   const [form, setForm] = useState<TournamentForm>(() => createDefaultTournamentForm());
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [tournamentEditId, setTournamentEditId] = useState<string | null>(null);
+  const [tournamentEditForm, setTournamentEditForm] = useState<TournamentForm>(() =>
+    createDefaultTournamentForm(),
+  );
+  const [tournamentEditErrors, setTournamentEditErrors] = useState<Record<string, string>>({});
   const [editForm, setEditForm] = useState<EditMatchForm>(() => createEditMatchForm());
   const [editErrors, setEditErrors] = useState<Record<string, string>>({});
   const [editLookup, setEditLookup] = useState<OpponentLookupState>({
@@ -255,6 +262,8 @@ export function TennisApp() {
   function openTournament(tournament: Tournament) {
     setSelectedTournament(tournament);
     setSelectedMatch(null);
+    setTournamentEditId(null);
+    setTournamentEditErrors({});
     router.push(tournamentPath(tournament.id));
   }
 
@@ -348,6 +357,74 @@ export function TennisApp() {
     openPrepareMatch(nextMatch, {
       opponent: "記録開始前に相手の名前を入力してください。",
     });
+  }
+
+  function openEditTournament(tournament: Tournament) {
+    setTournamentEditId(tournament.id);
+    setTournamentEditForm(createTournamentFormFromTournament(tournament));
+    setTournamentEditErrors({});
+  }
+
+  function cancelEditTournament() {
+    setTournamentEditId(null);
+    setTournamentEditErrors({});
+  }
+
+  function saveEditedTournament() {
+    if (!tournamentEditId) return;
+
+    const nextErrors = validateTournamentForm(tournamentEditForm);
+    setTournamentEditErrors(nextErrors);
+    if (Object.keys(nextErrors).length > 0) return;
+
+    const meta = {
+      name: tournamentEditForm.tournament.trim(),
+      date: tournamentEditForm.date,
+      grade: tournamentEditForm.grade,
+      event: tournamentEditForm.event,
+    };
+
+    setTournaments((current) => {
+      const next = current.map((tournament) =>
+        tournament.id === tournamentEditId
+          ? applyTournamentMetadata(tournament, meta)
+          : tournament,
+      );
+      setSelectedTournament(findTournamentById(next, tournamentEditId));
+      return next;
+    });
+
+    setSelectedMatch((current) =>
+      current?.tournamentId === tournamentEditId ? applyMatchMetadata(current, meta) : current,
+    );
+    setActiveMatch((current) =>
+      current?.tournamentId === tournamentEditId ? applyMatchMetadata(current, meta) : current,
+    );
+    setPrepareMatch((current) =>
+      current?.tournamentId === tournamentEditId ? applyMatchMetadata(current, meta) : current,
+    );
+    setTournamentEditId(null);
+    setTournamentEditErrors({});
+  }
+
+  function deleteTournament(tournament: Tournament) {
+    const confirmed = window.confirm(
+      `${tournament.name} を削除しますか？\nこの大会の試合記録もすべて削除されます。`,
+    );
+    if (!confirmed) return;
+
+    setTournaments((current) => current.filter((item) => item.id !== tournament.id));
+    if (activeMatch?.tournamentId === tournament.id) {
+      setActiveMatch(null);
+      setStats({ ...emptyStats });
+      setHistory([]);
+    }
+    if (selectedMatch?.tournamentId === tournament.id) setSelectedMatch(null);
+    if (prepareMatch?.tournamentId === tournament.id) setPrepareMatch(null);
+    setSelectedTournament(null);
+    setTournamentEditId(null);
+    setTournamentEditErrors({});
+    router.push("/");
   }
 
   function addStat(key: keyof Stats) {
@@ -621,7 +698,15 @@ export function TennisApp() {
             ...selectedTournamentLatest,
             matches: sortMatchesByRound(selectedTournamentLatest.matches, selectedTournamentLatest.drawSize),
           }}
+          editForm={tournamentEditForm}
+          editErrors={tournamentEditErrors}
+          isEditing={tournamentEditId === selectedTournamentLatest.id}
           onBack={navigateHome}
+          onEditChange={setTournamentEditForm}
+          onStartEdit={() => openEditTournament(selectedTournamentLatest)}
+          onCancelEdit={cancelEditTournament}
+          onSaveEdit={saveEditedTournament}
+          onDelete={() => deleteTournament(selectedTournamentLatest)}
           onOpenMatch={openMatch}
           onAddNextMatch={() => addNextMatch(selectedTournamentLatest)}
         />
@@ -754,6 +839,36 @@ function mergeAffiliationIntoMemo(memo: string, affiliation: string) {
 
   if (!affiliationLine) return memoLines.join("\n");
   return [affiliationLine, ...memoLines].join("\n");
+}
+
+function createTournamentFormFromTournament(tournament: Tournament): TournamentForm {
+  return {
+    date: tournament.date,
+    tournament: tournament.name,
+    grade: tournament.grade,
+    event: tournament.event,
+  };
+}
+
+function applyTournamentMetadata(
+  tournament: Tournament,
+  metadata: TournamentMetadata,
+): Tournament {
+  return {
+    ...tournament,
+    ...metadata,
+    matches: tournament.matches.map((match) => applyMatchMetadata(match, metadata)),
+  };
+}
+
+function applyMatchMetadata(match: MatchRecord, metadata: TournamentMetadata): MatchRecord {
+  return {
+    ...match,
+    date: metadata.date,
+    tournament: metadata.name,
+    grade: metadata.grade,
+    event: metadata.event,
+  };
 }
 
 function parseRoute(pathname: string): RouteState {

@@ -35,57 +35,7 @@ export function NewTournamentScreen({
     <AppShell bottomPadding>
       <ScreenHeader title="新しい大会" onBack={onBack} />
 
-      <div className="space-y-5">
-        <Field label="日付" required error={errors.date}>
-          <div className="relative">
-            <Input
-              type="date"
-              value={form.date}
-              onChange={(event) => onChange({ ...form, date: event.target.value })}
-              className={inputClass(Boolean(errors.date))}
-            />
-            <CalendarDays className="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
-          </div>
-        </Field>
-
-        <Field label="大会名" required error={errors.tournament}>
-          <Input
-            value={form.tournament}
-            placeholder="例：全国ジュニアテニス選手権"
-            onChange={(event) => onChange({ ...form, tournament: event.target.value })}
-            className={inputClass(Boolean(errors.tournament))}
-          />
-        </Field>
-
-        <Field label="グレード" required error={errors.grade}>
-          <div className="grid grid-cols-4 gap-2">
-            {gradeOptions.map((grade) => (
-              <ChoiceButton
-                key={grade}
-                selected={form.grade === grade}
-                onClick={() => onChange({ ...form, grade })}
-              >
-                {grade}
-              </ChoiceButton>
-            ))}
-          </div>
-        </Field>
-
-        <Field label="種目" required error={errors.event}>
-          <div className="grid gap-2">
-            {eventOptions.map((event) => (
-              <ChoiceButton
-                key={event}
-                selected={form.event === event}
-                onClick={() => onChange({ ...form, event })}
-              >
-                {event}
-              </ChoiceButton>
-            ))}
-          </div>
-        </Field>
-
-      </div>
+      <TournamentFormFields form={form} errors={errors} onChange={onChange} />
 
       <FixedAction>
         <div className="space-y-3">
@@ -105,5 +55,68 @@ export function NewTournamentScreen({
         </div>
       </FixedAction>
     </AppShell>
+  );
+}
+
+export function TournamentFormFields({
+  form,
+  errors,
+  onChange,
+}: {
+  form: TournamentForm;
+  errors: Record<string, string>;
+  onChange: (next: TournamentForm) => void;
+}) {
+  return (
+    <div className="space-y-5">
+      <Field label="日付" required error={errors.date}>
+        <div className="relative">
+          <Input
+            type="date"
+            value={form.date}
+            onChange={(event) => onChange({ ...form, date: event.target.value })}
+            className={inputClass(Boolean(errors.date))}
+          />
+          <CalendarDays className="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
+        </div>
+      </Field>
+
+      <Field label="大会名" required error={errors.tournament}>
+        <Input
+          value={form.tournament}
+          placeholder="例：全国ジュニアテニス選手権"
+          onChange={(event) => onChange({ ...form, tournament: event.target.value })}
+          className={inputClass(Boolean(errors.tournament))}
+        />
+      </Field>
+
+      <Field label="グレード" required error={errors.grade}>
+        <div className="grid grid-cols-4 gap-2">
+          {gradeOptions.map((grade) => (
+            <ChoiceButton
+              key={grade}
+              selected={form.grade === grade}
+              onClick={() => onChange({ ...form, grade })}
+            >
+              {grade}
+            </ChoiceButton>
+          ))}
+        </div>
+      </Field>
+
+      <Field label="種目" required error={errors.event}>
+        <div className="grid gap-2">
+          {eventOptions.map((event) => (
+            <ChoiceButton
+              key={event}
+              selected={form.event === event}
+              onClick={() => onChange({ ...form, event })}
+            >
+              {event}
+            </ChoiceButton>
+          ))}
+        </div>
+      </Field>
+    </div>
   );
 }

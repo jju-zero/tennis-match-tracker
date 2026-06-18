@@ -1,5 +1,8 @@
+import { Pencil, Trash2, X } from "lucide-react";
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { TournamentFormFields } from "@/components/screens/newTournamentScreen";
 import {
   AppShell,
   EmptyState,
@@ -17,16 +20,32 @@ import {
   sortMatchesByRound,
   tournamentProgressText,
 } from "@/lib/tennis";
-import type { MatchRecord, Tournament } from "@/types/tennis";
+import type { MatchRecord, Tournament, TournamentForm } from "@/types/tennis";
 
 export function TournamentScreen({
   tournament,
+  editForm,
+  editErrors,
+  isEditing,
   onBack,
+  onEditChange,
+  onStartEdit,
+  onCancelEdit,
+  onSaveEdit,
+  onDelete,
   onOpenMatch,
   onAddNextMatch,
 }: {
   tournament: Tournament;
+  editForm: TournamentForm;
+  editErrors: Record<string, string>;
+  isEditing: boolean;
   onBack: () => void;
+  onEditChange: (next: TournamentForm) => void;
+  onStartEdit: () => void;
+  onCancelEdit: () => void;
+  onSaveEdit: () => void;
+  onDelete: () => void;
   onOpenMatch: (match: MatchRecord) => void;
   onAddNextMatch: () => void;
 }) {
@@ -45,8 +64,81 @@ export function TournamentScreen({
   const hasOpenMatch = tournament.matches.some((match) => match.status !== "done");
 
   return (
-    <AppShell bottomPadding={canAddNextMatch && !hasOpenMatch}>
-      <ScreenHeader title={tournament.name} subtitle={`${tournament.date} · ${tournament.grade} · ${tournament.event}`} onBack={onBack} />
+    <AppShell bottomPadding={(canAddNextMatch && !hasOpenMatch) || isEditing}>
+      <ScreenHeader
+        title={tournament.name}
+        subtitle={`${tournament.date} · ${tournament.grade} · ${tournament.event}`}
+        onBack={isEditing ? onCancelEdit : onBack}
+        action={
+          isEditing ? (
+            <Button
+              variant="outline"
+              size="icon"
+              className="rounded-2xl border-slate-600 bg-[#202b3d] text-slate-100 hover:bg-[#34445c]"
+              onClick={onCancelEdit}
+              aria-label="編集を閉じる"
+            >
+              <X className="size-4" />
+            </Button>
+          ) : (
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="icon"
+                className="rounded-2xl border-slate-600 bg-[#202b3d] text-slate-100 hover:bg-[#34445c]"
+                onClick={onStartEdit}
+                aria-label="大会情報を編集"
+              >
+                <Pencil className="size-4" />
+              </Button>
+              <Button
+                variant="outline"
+                size="icon"
+                className="rounded-2xl border-rose-500/60 bg-[#202b3d] text-rose-300 hover:bg-rose-950/30"
+                onClick={onDelete}
+                aria-label="大会を削除"
+              >
+                <Trash2 className="size-4" />
+              </Button>
+            </div>
+          )
+        }
+      />
+
+      {isEditing ? (
+        <>
+          <Card className="rounded-2xl border-slate-700 bg-[#202b3d] text-slate-100">
+            <CardHeader>
+              <CardTitle>大会情報を編集</CardTitle>
+              <CardDescription className="text-slate-400">
+                保存すると、この大会内のすべての試合情報にも反映されます。
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <TournamentFormFields form={editForm} errors={editErrors} onChange={onEditChange} />
+            </CardContent>
+          </Card>
+
+          <FixedAction>
+            <div className="grid grid-cols-2 gap-3">
+              <Button
+                variant="outline"
+                className="h-16 rounded-2xl border-slate-600 bg-[#202b3d] text-base font-semibold text-slate-100 hover:bg-[#34445c]"
+                onClick={onCancelEdit}
+              >
+                キャンセル
+              </Button>
+              <Button
+                className="h-16 rounded-2xl bg-[#49df78] text-base font-semibold text-slate-950 hover:bg-[#5bdd75]"
+                onClick={onSaveEdit}
+              >
+                保存する
+              </Button>
+            </div>
+          </FixedAction>
+        </>
+      ) : (
+        <>
 
       <Card className="rounded-2xl border-slate-700 bg-[#202b3d] text-slate-100">
         <CardHeader>
@@ -105,6 +197,8 @@ export function TournamentScreen({
             {latestMatch ? "次の試合を追加" : "最初の試合を追加"}
           </Button>
         </FixedAction>
+      )}
+        </>
       )}
     </AppShell>
   );
