@@ -33,7 +33,7 @@ export const emptyStats: Stats = {
 export const gradeOptions: Grade[] = ["4A", "4B", "4C", "4D"];
 export const eventOptions: EventType[] = ["U12男子シングルス", "U14シングルス"];
 export const drawSizeOptions: DrawSize[] = ["qualifying", "main"];
-export const mainRoundOptions: Round[] = ["MAIN", "R16", "QF", "SF", "F"];
+export const mainRoundOptions: Round[] = ["R128", "R64", "R32", "R16", "QF", "SF", "F"];
 
 export function createDefaultTournamentForm(): TournamentForm {
   return {
@@ -53,7 +53,7 @@ export function createEditMatchForm(match?: MatchRecord | null): EditMatchForm {
     grade: match?.grade ?? "4C",
     event: match?.event ?? "U12男子シングルス",
     drawSize: match?.drawSize ?? "main",
-    round: match?.round ?? "MAIN",
+    round: match?.round ?? "R128",
     opponentRegistrationNumber: match?.opponentRegistrationNumber ?? "",
     opponent: match?.opponent ?? "",
     opponentMemo: match?.opponentMemo ?? "",
@@ -200,7 +200,7 @@ export function updateTournamentMetadataAndMatch(
 }
 
 export function firstRound(draw: DrawSize | Pick<PrepareMatchForm, "drawSize" | "round">): Round {
-  if (typeof draw === "string") return draw === "qualifying" ? "QUALIFYING" : "MAIN";
+  if (typeof draw === "string") return draw === "qualifying" ? "QUALIFYING" : "R128";
   return draw.drawSize === "qualifying" ? "QUALIFYING" : draw.round;
 }
 
@@ -212,7 +212,9 @@ export function roundOptionsForDraw(drawSize: DrawSize): Round[] {
 export function roundLabel(round: Round) {
   const labels: Record<Round, string> = {
     QUALIFYING: "予選",
-    MAIN: "本戦",
+    R128: "128強",
+    R64: "64強",
+    R32: "32強",
     R16: "16強",
     QF: "8強",
     SF: "4強",
@@ -226,8 +228,8 @@ export function drawSizeLabel(drawSize: DrawSize) {
 }
 
 export function nextRound(round: Round): Round | null {
-  const order: Round[] = ["R16", "QF", "SF", "F"];
-  if (round === "QUALIFYING" || round === "MAIN") return round;
+  const order = mainRoundOptions;
+  if (round === "QUALIFYING") return round;
   const index = order.indexOf(round);
   if (index < 0 || index === order.length - 1) return null;
   return order[index + 1];
@@ -388,7 +390,7 @@ function round(value: number, decimals: number) {
 
 function nextRoundInDraw(round: Round, drawSize: DrawSize): Round | null {
   const order = roundOptionsForDraw(drawSize);
-  if (round === "QUALIFYING" || round === "MAIN") return round;
+  if (round === "QUALIFYING") return round;
   const index = order.indexOf(round);
   if (index < 0 || index === order.length - 1) return null;
   return order[index + 1];

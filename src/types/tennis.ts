@@ -14,7 +14,7 @@ export type EventType = "U12男子シングルス" | "U14シングルス";
 export type Result = "win" | "loss" | null;
 export type Trend = "up" | "down" | "flat";
 export type DrawSize = "qualifying" | "main";
-export type Round = "QUALIFYING" | "MAIN" | "R16" | "QF" | "SF" | "F";
+export type Round = "QUALIFYING" | "R128" | "R64" | "R32" | "R16" | "QF" | "SF" | "F";
 
 export type Stats = {
   firstIn: number;

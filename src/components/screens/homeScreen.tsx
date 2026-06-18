@@ -12,11 +12,9 @@ import {
 import {
   buildSummary,
   getTournamentStatus,
-  matchStatusText,
-  roundLabel,
-  sortMatchesByRound,
 } from "@/lib/tennis";
-import type { MatchRecord, Tournament } from "@/types/tennis";
+import { getApprovedTournamentPoints } from "@/lib/kanto-points";
+import type { Tournament } from "@/types/tennis";
 
 export function HomeScreen({
   tournaments,
@@ -87,7 +85,7 @@ export function HomeScreen({
           onClick={onNew}
         >
           <CirclePlus className="size-5" />
-          新しい大会を記録
+          新しい大会
         </Button>
       </FixedAction>
     </AppShell>
@@ -101,12 +99,12 @@ function TournamentCard({
   tournament: Tournament;
   onClick: () => void;
 }) {
-  const latestMatch = latestTournamentMatch(tournament);
   const status = getTournamentStatus(tournament);
   const completedMatches = tournament.matches.filter((match) => match.status === "done");
   const tournamentSummary = buildSummary(completedMatches);
   const wins = completedMatches.filter((match) => match.result === "win").length;
   const losses = completedMatches.filter((match) => match.result === "loss").length;
+  const pointResult = getApprovedTournamentPoints(tournament);
 
   return (
     <button
@@ -115,9 +113,7 @@ function TournamentCard({
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center gap-2">
-            <p className="font-semibold">{tournament.name}</p>
-          </div>
+          <p className="font-semibold">{tournament.name}</p>
           <p className="mt-1 text-sm text-slate-400">
             {tournament.date} · {tournament.grade} · {tournament.event}
           </p>
@@ -127,14 +123,13 @@ function TournamentCard({
             <TournamentMetric label="チャンス" value={`${tournamentSummary.chanceBall}%`} />
             <TournamentMetric label="DF" value={`${tournamentSummary.doubleFaults}本`} />
           </div>
-          <p className="mt-1 text-sm text-slate-400">
-            {latestMatch
-              ? `${roundLabel(latestMatch.round)} · ${latestMatch.opponent || "相手未定"} · ${matchStatusText(latestMatch)}`
-              : "試合未作成"}
-          </p>
+          
         </div>
         <div className="flex shrink-0 flex-col items-end gap-3">
           <TournamentStatusBadge status={status} />
+          {pointResult && (
+            <p className="text-lg font-semibold text-[#6ee787]">{pointResult.points}pt</p>
+          )}
           <div className="text-right">
             <p className="text-lg font-semibold text-[#6ee787]">{tournament.matches.length}</p>
             <p className="text-xs text-slate-400">試合</p>
@@ -152,9 +147,4 @@ function TournamentMetric({ label, value }: { label: string; value: string }) {
       <p className="mt-1 text-sm font-semibold text-slate-100">{value}</p>
     </div>
   );
-}
-
-function latestTournamentMatch(tournament: Tournament): MatchRecord | null {
-  const sorted = sortMatchesByRound(tournament.matches, tournament.drawSize);
-  return sorted[sorted.length - 1] ?? null;
 }

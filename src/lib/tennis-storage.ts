@@ -15,7 +15,7 @@ const adminPinStorageKey = "court-note-admin-pin:v1";
 let remoteWriteDisabled = false;
 
 type LegacyDrawSize = DrawSize | 16 | 32 | 64;
-type LegacyRound = Round | "R64" | "R32";
+type LegacyRound = Round | "MAIN";
 
 type LegacyMatch = Omit<
   MatchRecord,
@@ -226,7 +226,16 @@ function normalizeDrawSize(drawSize?: LegacyDrawSize): DrawSize {
 
 function normalizeRound(round: LegacyRound | undefined, drawSize: DrawSize): Round {
   if (drawSize === "qualifying") return "QUALIFYING";
-  if (round === "R16" || round === "QF" || round === "SF" || round === "F" || round === "MAIN") {
+  if (round === "MAIN") return "R128";
+  if (
+    round === "R128" ||
+    round === "R64" ||
+    round === "R32" ||
+    round === "R16" ||
+    round === "QF" ||
+    round === "SF" ||
+    round === "F"
+  ) {
     return round;
   }
   return firstRound(drawSize);

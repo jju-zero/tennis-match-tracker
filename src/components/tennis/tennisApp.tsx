@@ -95,7 +95,7 @@ export function TennisApp() {
   const [prepareMatch, setPrepareMatch] = useState<MatchRecord | null>(null);
   const [prepareForm, setPrepareForm] = useState<PrepareMatchForm>({
     drawSize: "main",
-    round: "MAIN",
+    round: "R128",
     opponentRegistrationNumber: "",
     opponent: "",
     opponentMemo: "",
@@ -290,7 +290,7 @@ export function TennisApp() {
     const firstMatch = createMatchForTournament(tournament, {
       status: "draft",
       drawSize: "main",
-      round: "MAIN",
+      round: "R128",
       opponent: "",
       opponentMemo: "",
     });

@@ -76,7 +76,7 @@ export function EditMatchScreen({
                   onChange({
                     ...form,
                     drawSize,
-                    round: drawSize === "qualifying" ? "QUALIFYING" : "MAIN",
+                    round: drawSize === "qualifying" ? "QUALIFYING" : "R128",
                   })
                 }
               >
@@ -87,7 +87,7 @@ export function EditMatchScreen({
         </Field>
 
         {form.drawSize === "main" && (
-          <Field label="ラウンド" hint="本戦128などは本戦を選択">
+          <Field label="ラウンド" hint="実際の開始ラウンドを選択">
             <div className="grid grid-cols-3 gap-2">
               {mainRoundOptions.map((round) => (
                 <ChoiceButton

@@ -31,6 +31,7 @@ export function TournamentScreen({
   onAddNextMatch: () => void;
 }) {
   const sortedMatches = sortMatchesByRound(tournament.matches, tournament.drawSize);
+  const displayMatches = sortedMatches.slice().reverse();
   const latestMatch = sortedMatches[sortedMatches.length - 1] ?? null;
   const status = getTournamentStatus(tournament);
   const tournamentFinished =
@@ -75,7 +76,7 @@ export function TournamentScreen({
           />
         ) : (
           <div className="space-y-3">
-            {sortedMatches.map((match) => (
+            {displayMatches.map((match) => (
               <button
                 key={match.id}
                 className="w-full rounded-2xl border border-slate-700 bg-[#202b3d] p-4 text-left transition hover:border-[#6ee787]/70 hover:bg-[#26344a]"
