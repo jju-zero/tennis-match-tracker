@@ -58,6 +58,20 @@ type RouteState = {
   matchId?: string;
 };
 
+type OpponentLookupState = {
+  loading: boolean;
+  message: string | null;
+};
+
+type KantoPlayerLookup = {
+  player?: {
+    registrationNumber: string;
+    name: string;
+    affiliation: string;
+  };
+  error?: string;
+};
+
 export function TennisApp() {
   const pathname = usePathname();
   const router = useRouter();
@@ -74,14 +88,23 @@ export function TennisApp() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [editForm, setEditForm] = useState<EditMatchForm>(() => createEditMatchForm());
   const [editErrors, setEditErrors] = useState<Record<string, string>>({});
+  const [editLookup, setEditLookup] = useState<OpponentLookupState>({
+    loading: false,
+    message: null,
+  });
   const [prepareMatch, setPrepareMatch] = useState<MatchRecord | null>(null);
   const [prepareForm, setPrepareForm] = useState<PrepareMatchForm>({
     drawSize: "main",
     round: "MAIN",
+    opponentRegistrationNumber: "",
     opponent: "",
     opponentMemo: "",
   });
   const [prepareErrors, setPrepareErrors] = useState<Record<string, string>>({});
+  const [prepareLookup, setPrepareLookup] = useState<OpponentLookupState>({
+    loading: false,
+    message: null,
+  });
   const [finishResult, setFinishResult] = useState<Result>("win");
   const [finishScore, setFinishScore] = useState("");
   const [finishNote, setFinishNote] = useState("");
@@ -190,6 +213,7 @@ export function TennisApp() {
         setPrepareForm({
           drawSize: nextMatch.drawSize,
           round: nextMatch.round,
+          opponentRegistrationNumber: nextMatch.opponentRegistrationNumber,
           opponent: nextMatch.opponent,
           opponentMemo: nextMatch.opponentMemo,
         });
@@ -398,6 +422,7 @@ export function TennisApp() {
     setSelectedMatch(match);
     setEditForm(createEditMatchForm(match));
     setEditErrors({});
+    setEditLookup({ loading: false, message: null });
     router.push(editPath(match.id));
   }
 
@@ -407,10 +432,12 @@ export function TennisApp() {
     setPrepareForm({
       drawSize: match.drawSize,
       round: match.round,
+      opponentRegistrationNumber: match.opponentRegistrationNumber,
       opponent: match.opponent,
       opponentMemo: match.opponentMemo,
     });
     setPrepareErrors(nextErrors);
+    setPrepareLookup({ loading: false, message: null });
     router.push(preparePath(match.id));
   }
 
@@ -422,6 +449,7 @@ export function TennisApp() {
       ...match,
       drawSize: prepareForm.drawSize,
       round: prepareForm.drawSize === "qualifying" ? "QUALIFYING" : prepareForm.round,
+      opponentRegistrationNumber: prepareForm.opponentRegistrationNumber.trim(),
       opponent: prepareForm.opponent.trim(),
       opponentMemo: prepareForm.opponentMemo.trim(),
     };
@@ -446,6 +474,7 @@ export function TennisApp() {
       status: "recording",
       drawSize: prepareForm.drawSize,
       round: prepareForm.drawSize === "qualifying" ? "QUALIFYING" : prepareForm.round,
+      opponentRegistrationNumber: prepareForm.opponentRegistrationNumber.trim(),
       opponent: prepareForm.opponent.trim(),
       opponentMemo: prepareForm.opponentMemo.trim(),
     };
@@ -476,6 +505,7 @@ export function TennisApp() {
       ...targetMatch,
       drawSize: editForm.drawSize,
       round: editForm.round,
+      opponentRegistrationNumber: editForm.opponentRegistrationNumber.trim(),
       opponent: editForm.opponent.trim(),
       opponentMemo: editForm.opponentMemo.trim(),
       result: editForm.status === "done" ? editForm.result : targetMatch.result,
@@ -494,6 +524,34 @@ export function TennisApp() {
       setFinishOpponentMemo(updatedMatch.opponentMemo);
     }
     router.push(matchPath(updatedMatch.id));
+  }
+
+  async function lookupPrepareOpponent() {
+    await lookupOpponent(
+      prepareForm.opponentRegistrationNumber,
+      setPrepareLookup,
+      (player) =>
+        setPrepareForm((current) => ({
+          ...current,
+          opponentRegistrationNumber: player.registrationNumber,
+          opponent: player.name,
+          opponentMemo: mergeAffiliationIntoMemo(current.opponentMemo, player.affiliation),
+        })),
+    );
+  }
+
+  async function lookupEditOpponent() {
+    await lookupOpponent(
+      editForm.opponentRegistrationNumber,
+      setEditLookup,
+      (player) =>
+        setEditForm((current) => ({
+          ...current,
+          opponentRegistrationNumber: player.registrationNumber,
+          opponent: player.name,
+          opponentMemo: mergeAffiliationIntoMemo(current.opponentMemo, player.affiliation),
+        })),
+    );
   }
 
   function resumeMatch(match: MatchRecord) {
@@ -574,8 +632,11 @@ export function TennisApp() {
           match={prepareMatchLatest}
           form={prepareForm}
           errors={prepareErrors}
+          lookupMessage={prepareLookup.message}
+          lookupLoading={prepareLookup.loading}
           onBack={() => router.push(tournamentPath(prepareMatchLatest.tournamentId))}
           onChange={setPrepareForm}
+          onLookupOpponent={lookupPrepareOpponent}
           onStart={startPreparedMatch}
           onSaveDraft={savePreparedDraft}
         />
@@ -630,17 +691,69 @@ export function TennisApp() {
         <EditMatchScreen
           form={editForm}
           errors={editErrors}
+          lookupMessage={editLookup.message}
+          lookupLoading={editLookup.loading}
           onBack={() =>
             selectedMatchLatest
               ? router.push(matchPath(selectedMatchLatest.id))
               : router.push("/")
           }
           onChange={setEditForm}
+          onLookupOpponent={lookupEditOpponent}
           onSave={saveEditedMatch}
         />
       )}
     </main>
   );
+}
+
+async function lookupOpponent(
+  registrationNumber: string,
+  setLookup: (next: OpponentLookupState) => void,
+  onFound: (player: NonNullable<KantoPlayerLookup["player"]>) => void,
+) {
+  const normalizedRegistrationNumber = registrationNumber.trim();
+  if (!normalizedRegistrationNumber) return;
+
+  setLookup({ loading: true, message: null });
+
+  try {
+    const response = await fetch(
+      `/api/kanto-player?registrationNumber=${encodeURIComponent(normalizedRegistrationNumber)}`,
+      { cache: "no-store" },
+    );
+    const data = (await response.json()) as KantoPlayerLookup;
+
+    if (!response.ok || !data.player) {
+      setLookup({
+        loading: false,
+        message: "登録番号に一致する選手が見つかりませんでした。",
+      });
+      return;
+    }
+
+    onFound(data.player);
+    setLookup({
+      loading: false,
+      message: `${data.player.name} / ${data.player.affiliation || "所属なし"} を反映しました。`,
+    });
+  } catch {
+    setLookup({
+      loading: false,
+      message: "ランキング情報を取得できませんでした。",
+    });
+  }
+}
+
+function mergeAffiliationIntoMemo(memo: string, affiliation: string) {
+  const affiliationLine = affiliation.trim() ? `所属: ${affiliation.trim()}` : "";
+  const memoLines = memo
+    .split("\n")
+    .map((line) => line.trimEnd())
+    .filter((line) => line.trim() && !line.trim().startsWith("所属:"));
+
+  if (!affiliationLine) return memoLines.join("\n");
+  return [affiliationLine, ...memoLines].join("\n");
 }
 
 function parseRoute(pathname: string): RouteState {

@@ -54,6 +54,7 @@ export function createEditMatchForm(match?: MatchRecord | null): EditMatchForm {
     event: match?.event ?? "U12男子シングルス",
     drawSize: match?.drawSize ?? "main",
     round: match?.round ?? "MAIN",
+    opponentRegistrationNumber: match?.opponentRegistrationNumber ?? "",
     opponent: match?.opponent ?? "",
     opponentMemo: match?.opponentMemo ?? "",
     status: match?.status ?? "draft",
@@ -84,6 +85,7 @@ export function createMatchForTournament(
     status: MatchStatus;
     drawSize?: DrawSize;
     round: Round;
+    opponentRegistrationNumber?: string;
     opponent: string;
     opponentMemo: string;
   },
@@ -97,6 +99,7 @@ export function createMatchForTournament(
     event: tournament.event,
     drawSize: input.drawSize ?? tournament.drawSize,
     round: input.round,
+    opponentRegistrationNumber: input.opponentRegistrationNumber ?? "",
     opponent: input.opponent,
     opponentMemo: input.opponentMemo,
     result: null,

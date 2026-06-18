@@ -45,6 +45,7 @@ export type MatchRecord = {
   event: EventType;
   drawSize: DrawSize;
   round: Round;
+  opponentRegistrationNumber: string;
   opponent: string;
   opponentMemo: string;
   result: Result;
@@ -80,6 +81,7 @@ export type EditMatchForm = TournamentForm & {
   status: MatchStatus;
   drawSize: DrawSize;
   round: Round;
+  opponentRegistrationNumber: string;
   opponent: string;
   opponentMemo: string;
   result: Result;
@@ -91,6 +93,7 @@ export type EditMatchForm = TournamentForm & {
 export type PrepareMatchForm = {
   drawSize: DrawSize;
   round: Round;
+  opponentRegistrationNumber: string;
   opponent: string;
   opponentMemo: string;
 };

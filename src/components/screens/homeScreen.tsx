@@ -15,7 +15,6 @@ import {
   matchStatusText,
   roundLabel,
   sortMatchesByRound,
-  tournamentProgressText,
 } from "@/lib/tennis";
 import type { MatchRecord, Tournament } from "@/types/tennis";
 
@@ -115,18 +114,18 @@ function TournamentCard({
       onClick={onClick}
     >
       <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
+        <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
             <p className="font-semibold">{tournament.name}</p>
           </div>
           <p className="mt-1 text-sm text-slate-400">
             {tournament.date} · {tournament.grade} · {tournament.event}
           </p>
-          <div className="mt-4 grid grid-cols-4 gap-2">
+          <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
             <TournamentMetric label="勝敗" value={`${wins}-${losses}`} />
             <TournamentMetric label="1st" value={`${tournamentSummary.firstServe}%`} />
             <TournamentMetric label="チャンス" value={`${tournamentSummary.chanceBall}%`} />
-            <TournamentMetric label="DF" value={`${tournamentSummary.doubleFaults}`} />
+            <TournamentMetric label="DF" value={`${tournamentSummary.doubleFaults}本`} />
           </div>
           <p className="mt-1 text-sm text-slate-400">
             {latestMatch

@@ -17,10 +17,14 @@ let remoteWriteDisabled = false;
 type LegacyDrawSize = DrawSize | 16 | 32 | 64;
 type LegacyRound = Round | "R64" | "R32";
 
-type LegacyMatch = Omit<MatchRecord, "tournamentId" | "drawSize" | "round"> & {
+type LegacyMatch = Omit<
+  MatchRecord,
+  "tournamentId" | "drawSize" | "round" | "opponentRegistrationNumber"
+> & {
   tournamentId?: string;
   drawSize?: LegacyDrawSize;
   round?: LegacyRound;
+  opponentRegistrationNumber?: string;
 };
 
 export function readStoredState(): StoredState | null {
@@ -204,6 +208,7 @@ function normalizeMatch(match: LegacyMatch, tournamentId: string, drawSize: Draw
     round: normalizeRound(match.round, drawSize),
     grade: match.grade as Grade,
     event: match.event as EventType,
+    opponentRegistrationNumber: match.opponentRegistrationNumber ?? "",
     opponentMemo: match.opponentMemo ?? "",
     result: match.result ?? null,
     score: match.score ?? "",
