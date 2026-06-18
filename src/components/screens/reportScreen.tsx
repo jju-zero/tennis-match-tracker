@@ -31,7 +31,8 @@ import type { MatchRecord } from "@/types/tennis";
 
 export function ReportScreen({ matches, onBack }: { matches: MatchRecord[]; onBack: () => void }) {
   const [period, setPeriod] = useState("5");
-  const scopedMatches = period === "all" ? matches : matches.slice(0, Number(period));
+  const periodCount = period === "all" ? null : Number(period);
+  const scopedMatches = periodCount === null ? matches : matches.slice(0, periodCount);
   const summary = buildSummary(scopedMatches);
   const data = scopedMatches
     .slice()
@@ -57,16 +58,16 @@ export function ReportScreen({ matches, onBack }: { matches: MatchRecord[]; onBa
 
       <section className="space-y-3">
         <SectionTitle>指標サマリー</SectionTitle>
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          <SummaryCard label="1stサーブ率" value={`${summary.firstServe}%`} trend="up" />
-          <SummaryCard label="チャンスボール" value={`${summary.chanceBall}%`} trend="down" />
-          <SummaryCard label="デュースサイド" value={`${summary.deuce}%`} trend="down" />
-          <SummaryCard label="アドサイド率" value={`${summary.ad}%`} trend="up" />
-          <SummaryCard label="ボレー率" value={`${summary.volley}%`} trend="up" />
-          <SummaryCard label="ダブルフォルト" value={`${summary.doubleFaults}本`} trend="down" />
-          <SummaryCard label="ネット" value={`${summary.net}本`} trend="up" />
-          <SummaryCard label="10Gあたり DF" value={`${summary.dfPerTen}`} trend="down" />
-          <SummaryCard label="10Gあたり ミス" value={`${summary.missPerTen}`} trend="down" />
+        <div className="grid grid-cols-3 gap-3">
+          <SummaryCard label="1stサーブ成功率" value={`${summary.firstServe}%`} />
+          <SummaryCard label="デュースサイド成功率" value={`${summary.deuce}%`} />
+          <SummaryCard label="アドサイド成功率" value={`${summary.ad}%`} />
+          <SummaryCard label="チャンスボール成功率" value={`${summary.chanceBall}%`} />
+          <SummaryCard label="ボレー成功率" value={`${summary.volley}%`} />
+          <SummaryCard label="ダブルフォルト" value={`${summary.doubleFaults}本`} />
+          <SummaryCard label="ネットミス" value={`${summary.net}本`} />
+          <SummaryCard label="10Gあたり DF" value={`${summary.dfPerTen}`} />
+          <SummaryCard label="10Gあたり ミス" value={`${summary.missPerTen}`} />
         </div>
       </section>
 

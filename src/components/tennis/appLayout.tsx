@@ -70,12 +70,12 @@ export function FixedAction({ children }: { children: ReactNode }) {
   );
 }
 
-export function SummaryCard({ label, value, trend }: { label: string; value: string; trend: Trend }) {
+export function SummaryCard({ label, value, trend }: { label: string; value: string; trend?: Trend }) {
   return (
     <Card className="rounded-2xl border-slate-700 bg-[#202b3d] text-slate-100 shadow-sm">
       <CardContent className="p-4">
         <div className="flex items-center gap-2 text-sm font-medium text-slate-400">
-          <TrendIcon trend={trend} />
+          {trend && <TrendIcon trend={trend} />}
           {label}
         </div>
         <p className="mt-3 text-3xl font-semibold">{value}</p>

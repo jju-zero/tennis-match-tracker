@@ -154,6 +154,25 @@ export function flattenMatches(tournaments: Tournament[]) {
   return tournaments.flatMap((tournament) => tournament.matches);
 }
 
+export function sortMatchesByRecent(matches: MatchRecord[]) {
+  return [...matches].sort((a, b) => {
+    const dateDiff = matchDateTime(b) - matchDateTime(a);
+    if (dateDiff !== 0) return dateDiff;
+
+    return matchCreatedAt(b) - matchCreatedAt(a);
+  });
+}
+
+function matchDateTime(match: MatchRecord) {
+  const value = Date.parse(match.date);
+  return Number.isNaN(value) ? 0 : value;
+}
+
+function matchCreatedAt(match: MatchRecord) {
+  const timestamp = match.id.match(/^m-(\d+)/)?.[1];
+  return timestamp ? Number(timestamp) : 0;
+}
+
 export function findTournamentById(tournaments: Tournament[], id: string) {
   return tournaments.find((tournament) => tournament.id === id) ?? null;
 }

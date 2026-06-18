@@ -28,6 +28,7 @@ import {
   normalizeTournamentUrl,
   parseScore,
   replaceMatchInTournaments,
+  sortMatchesByRecent,
   sortMatchesByRound,
   validateEditMatchForm,
   validatePrepareMatchForm,
@@ -120,7 +121,7 @@ export function TennisApp() {
   const [storageReady, setStorageReady] = useState(false);
 
   const completedMatches = useMemo(
-    () => flattenMatches(tournaments).filter((match) => match.status === "done"),
+    () => sortMatchesByRecent(flattenMatches(tournaments).filter((match) => match.status === "done")),
     [tournaments],
   );
   const lastFive = useMemo(() => completedMatches.slice(0, 5), [completedMatches]);

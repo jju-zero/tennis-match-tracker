@@ -53,9 +53,9 @@ export function HomeScreen({
       <section className="space-y-3">
         <SectionTitle>直近5試合まとめ</SectionTitle>
         <div className="grid gap-3 sm:grid-cols-3">
-          <SummaryCard label="1stサーブ率" value={`${summary.firstServe}%`} trend="up" />
-          <SummaryCard label="チャンスボール" value={`${summary.chanceBall}%`} trend="up" />
-          <SummaryCard label="DF平均" value={`${summary.doubleFaults}本`} trend="down" />
+          <SummaryCard label="1stサーブ率" value={`${summary.firstServe}%`} />
+          <SummaryCard label="チャンスボール成功率" value={`${summary.chanceBall}%`} />
+          <SummaryCard label="DF平均" value={`${summary.doubleFaults}本`} />
         </div>
       </section>
 

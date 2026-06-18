@@ -122,21 +122,17 @@ export function MatchDetailScreen({
 
 function DetailSection({ title, items }: { title: string; items: Array<[string, string | number]> }) {
   return (
-    <Card className="rounded-2xl border-slate-700 bg-[#202b3d] text-slate-100">
-      <CardHeader>
-        <CardTitle className="text-base">{title}</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-          {items.map(([label, value]) => (
-            <div key={label} className="rounded-2xl border border-slate-700 bg-[#182337] p-3">
-              <p className="text-sm text-slate-400">{label}</p>
-              <p className="mt-1 text-xl font-semibold">{value}</p>
-            </div>
-          ))}
-        </div>
-      </CardContent>
-    </Card>
+    <section className="space-y-2">
+      <h2 className="text-base">{title}</h2>
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+        {items.map(([label, value]) => (
+          <div key={label} className="rounded-2xl border border-slate-700 bg-[#182337] p-3">
+            <p className="text-sm text-slate-400">{label}</p>
+            <p className="mt-1 text-xl font-semibold">{value}</p>
+          </div>
+        ))}
+      </div>
+    </section>
   );
 }
 
