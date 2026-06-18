@@ -345,7 +345,7 @@ export function successRate(success: number, total: number) {
 }
 
 export function totalMisses(stats: Stats) {
-  return stats.doubleFaults + stats.net + stats.baseOut + stats.sideOut;
+  return stats.net + stats.baseOut + stats.sideOut;
 }
 
 export function totalGames(match: MatchRecord) {

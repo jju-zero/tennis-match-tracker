@@ -53,7 +53,7 @@ export function RecordScreen({
         <div className="mx-auto mt-3 grid max-w-5xl grid-cols-4 gap-2">
           <LiveStat label="1stサーブ率" value={`${summary.firstServe}%`} tone="text-[#6ee787]" />
           <LiveStat label="チャンスボール" value={`${summary.chanceBall}%`} tone="text-[#69a9ff]" />
-          <LiveStat label="総ミス" value={`${summary.totalMiss}`} tone="text-[#ffbd6e]" />
+          <LiveStat label="ミス" value={`${summary.totalMiss}`} tone="text-[#ffbd6e]" />
           <LiveStat label="DF" value={`${stats.doubleFaults}`} tone="text-[#ff7373]" />
         </div>
       </header>

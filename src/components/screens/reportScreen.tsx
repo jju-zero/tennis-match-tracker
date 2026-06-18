@@ -100,7 +100,7 @@ export function ReportScreen({ matches, onBack }: { matches: MatchRecord[]; onBa
           <YAxis tickLine={false} axisLine={false} tick={{ fill: "#94a3b8" }} />
           <Tooltip />
           <Line type="monotone" dataKey="doubleFaults" name="DF" stroke="#ff7373" strokeWidth={3} />
-          <Line type="monotone" dataKey="misses" name="総ミス" stroke="#ff9138" strokeWidth={3} />
+          <Line type="monotone" dataKey="misses" name="ミス" stroke="#ff9138" strokeWidth={3} />
         </LineChart>
       </ChartCard>
 

@@ -88,8 +88,8 @@ export function MatchDetailScreen({
           ["ネット", match.stats.net],
           ["ベースアウト", match.stats.baseOut],
           ["サイドアウト", match.stats.sideOut],
-          ["総ミス", totalMisses(match.stats)],
-          ["10Gあたり総ミス", perTen(totalMisses(match.stats), games)],
+          ["ミス合計", totalMisses(match.stats)],
+          ["10Gあたりミス", perTen(totalMisses(match.stats), games)],
         ]}
       />
       <DetailSection
