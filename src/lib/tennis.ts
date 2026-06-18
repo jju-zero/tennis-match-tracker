@@ -41,6 +41,7 @@ export function createDefaultTournamentForm(): TournamentForm {
     tournament: "",
     grade: "4C",
     event: "U12男子シングルス",
+    drawUrl: "",
     memo: "",
   };
 }
@@ -53,6 +54,7 @@ export function createEditMatchForm(match?: MatchRecord | null): EditMatchForm {
     tournament: match?.tournament ?? "",
     grade: match?.grade ?? "4C",
     event: match?.event ?? "U12男子シングルス",
+    drawUrl: "",
     memo: "",
     drawSize: match?.drawSize ?? "main",
     round: match?.round ?? "R128",
@@ -75,11 +77,19 @@ export function createTournament(form: TournamentForm, status: TournamentStatus 
     date: form.date,
     grade: form.grade,
     event: form.event,
+    drawUrl: normalizeTournamentUrl(form.drawUrl),
     memo: form.memo.trim(),
     drawSize: "main",
     status,
     matches: [],
   };
+}
+
+export function normalizeTournamentUrl(value: string) {
+  const trimmed = value.trim();
+  if (!trimmed) return "";
+  if (/^https?:\/\//i.test(trimmed)) return trimmed;
+  return `https://${trimmed}`;
 }
 
 export function createMatchForTournament(

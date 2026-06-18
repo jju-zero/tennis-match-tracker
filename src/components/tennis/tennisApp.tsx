@@ -25,6 +25,7 @@ import {
   flattenMatches,
   getTournamentStatusAfterMatch,
   nextRoundForTournament,
+  normalizeTournamentUrl,
   parseScore,
   replaceMatchInTournaments,
   sortMatchesByRound,
@@ -72,7 +73,7 @@ type KantoPlayerLookup = {
   error?: string;
 };
 
-type TournamentMetadata = Pick<Tournament, "name" | "date" | "grade" | "event" | "memo">;
+type TournamentMetadata = Pick<Tournament, "name" | "date" | "grade" | "event" | "drawUrl" | "memo">;
 
 export function TennisApp() {
   const pathname = usePathname();
@@ -382,6 +383,7 @@ export function TennisApp() {
       date: tournamentEditForm.date,
       grade: tournamentEditForm.grade,
       event: tournamentEditForm.event,
+      drawUrl: normalizeTournamentUrl(tournamentEditForm.drawUrl),
       memo: tournamentEditForm.memo.trim(),
     };
 
@@ -848,6 +850,7 @@ function createTournamentFormFromTournament(tournament: Tournament): TournamentF
     tournament: tournament.name,
     grade: tournament.grade,
     event: tournament.event,
+    drawUrl: tournament.drawUrl,
     memo: tournament.memo,
   };
 }

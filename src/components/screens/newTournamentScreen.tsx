@@ -119,6 +119,16 @@ export function TournamentFormFields({
         </div>
       </Field>
 
+      <Field label="ドローURL" hint="任意">
+        <Input
+          value={form.drawUrl}
+          placeholder="https://..."
+          inputMode="url"
+          onChange={(event) => onChange({ ...form, drawUrl: event.target.value })}
+          className={inputClass(false)}
+        />
+      </Field>
+
       <Field label="大会メモ" hint="任意">
         <Textarea
           value={form.memo}

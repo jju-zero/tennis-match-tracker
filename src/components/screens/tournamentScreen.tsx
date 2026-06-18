@@ -153,6 +153,17 @@ export function TournamentScreen({
         </CardContent>
       </Card>
 
+      {tournament.drawUrl && (
+        <a
+          className="block rounded-2xl border border-[#6ee787]/40 bg-[#142a26] p-4 text-sm font-semibold text-[#6ee787] transition hover:bg-[#18352f]"
+          href={tournament.drawUrl}
+          target="_blank"
+          rel="noreferrer"
+        >
+          ドローを見る
+        </a>
+      )}
+
       {tournament.memo && (
         <section className="space-y-2">
           <SectionTitle>大会メモ</SectionTitle>
