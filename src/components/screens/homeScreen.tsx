@@ -10,8 +10,8 @@ import {
   TournamentStatusBadge,
 } from "@/components/tennis/appLayout";
 import {
-  firstServeRate,
-  drawSizeLabel,
+  buildSummary,
+  getTournamentStatus,
   matchStatusText,
   roundLabel,
   sortMatchesByRound,
@@ -103,6 +103,11 @@ function TournamentCard({
   onClick: () => void;
 }) {
   const latestMatch = latestTournamentMatch(tournament);
+  const status = getTournamentStatus(tournament);
+  const completedMatches = tournament.matches.filter((match) => match.status === "done");
+  const tournamentSummary = buildSummary(completedMatches);
+  const wins = completedMatches.filter((match) => match.result === "win").length;
+  const losses = completedMatches.filter((match) => match.result === "loss").length;
 
   return (
     <button
@@ -113,12 +118,16 @@ function TournamentCard({
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
             <p className="font-semibold">{tournament.name}</p>
-            <TournamentStatusBadge status={tournament.status} />
           </div>
           <p className="mt-1 text-sm text-slate-400">
-            {tournament.date} · {tournament.grade} · {tournament.event} · {drawSizeLabel(tournament.drawSize)}
+            {tournament.date} · {tournament.grade} · {tournament.event}
           </p>
-          <p className="mt-3 text-lg font-semibold">{tournamentProgressText(tournament)}</p>
+          <div className="mt-4 grid grid-cols-4 gap-2">
+            <TournamentMetric label="勝敗" value={`${wins}-${losses}`} />
+            <TournamentMetric label="1st" value={`${tournamentSummary.firstServe}%`} />
+            <TournamentMetric label="チャンス" value={`${tournamentSummary.chanceBall}%`} />
+            <TournamentMetric label="DF" value={`${tournamentSummary.doubleFaults}`} />
+          </div>
           <p className="mt-1 text-sm text-slate-400">
             {latestMatch
               ? `${roundLabel(latestMatch.round)} · ${latestMatch.opponent || "相手未定"} · ${matchStatusText(latestMatch)}`
@@ -126,16 +135,23 @@ function TournamentCard({
           </p>
         </div>
         <div className="flex shrink-0 flex-col items-end gap-3">
-          <TournamentStatusBadge status={tournament.status} />
+          <TournamentStatusBadge status={status} />
           <div className="text-right">
-            <p className="text-lg font-semibold text-[#6ee787]">
-              {latestMatch ? firstServeRate(latestMatch.stats) : 0}%
-            </p>
-            <p className="text-xs text-slate-400">1stサーブ率</p>
+            <p className="text-lg font-semibold text-[#6ee787]">{tournament.matches.length}</p>
+            <p className="text-xs text-slate-400">試合</p>
           </div>
         </div>
       </div>
     </button>
+  );
+}
+
+function TournamentMetric({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-xl border border-slate-700 bg-[#182337] p-2">
+      <p className="text-[11px] font-medium text-slate-500">{label}</p>
+      <p className="mt-1 text-sm font-semibold text-slate-100">{value}</p>
+    </div>
   );
 }
 

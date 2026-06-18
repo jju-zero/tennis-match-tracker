@@ -1,4 +1,4 @@
-import { CalendarDays, Save } from "lucide-react";
+import { Save } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,8 +15,6 @@ import {
 import {
   drawSizeOptions,
   drawSizeLabel,
-  eventOptions,
-  gradeOptions,
   mainRoundOptions,
   roundLabel,
 } from "@/lib/tennis";
@@ -40,54 +38,27 @@ export function EditMatchScreen({
       <ScreenHeader title="試合を編集" subtitle={`vs ${form.opponent || "相手未入力"}`} onBack={onBack} />
 
       <div className="space-y-5">
-        <Field label="日付" required error={errors.date}>
-          <div className="relative">
-            <Input
-              type="date"
-              value={form.date}
-              onChange={(event) => onChange({ ...form, date: event.target.value })}
-              className={inputClass(Boolean(errors.date))}
-            />
-            <CalendarDays className="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
-          </div>
-        </Field>
-
-        <Field label="大会名" required error={errors.tournament}>
-          <Input
-            value={form.tournament}
-            placeholder="例：全国ジュニアテニス選手権"
-            onChange={(event) => onChange({ ...form, tournament: event.target.value })}
-            className={inputClass(Boolean(errors.tournament))}
-          />
-        </Field>
-
-        <Field label="グレード" required error={errors.grade}>
-          <div className="grid grid-cols-4 gap-2">
-            {gradeOptions.map((grade) => (
-              <ChoiceButton
-                key={grade}
-                selected={form.grade === grade}
-                onClick={() => onChange({ ...form, grade })}
-              >
-                {grade}
-              </ChoiceButton>
-            ))}
-          </div>
-        </Field>
-
-        <Field label="種目" required error={errors.event}>
-          <div className="grid gap-2">
-            {eventOptions.map((event) => (
-              <ChoiceButton
-                key={event}
-                selected={form.event === event}
-                onClick={() => onChange({ ...form, event })}
-              >
-                {event}
-              </ChoiceButton>
-            ))}
-          </div>
-        </Field>
+        <section className="space-y-3 rounded-2xl border border-slate-700 bg-[#202b3d] p-4">
+          <SectionTitle>大会情報</SectionTitle>
+          <dl className="grid grid-cols-2 gap-3 text-sm">
+            <div className="col-span-2">
+              <dt className="text-slate-500">大会名</dt>
+              <dd className="mt-1 font-semibold text-slate-100">{form.tournament}</dd>
+            </div>
+            <div>
+              <dt className="text-slate-500">日付</dt>
+              <dd className="mt-1 font-semibold text-slate-100">{form.date}</dd>
+            </div>
+            <div>
+              <dt className="text-slate-500">グレード</dt>
+              <dd className="mt-1 font-semibold text-slate-100">{form.grade}</dd>
+            </div>
+            <div className="col-span-2">
+              <dt className="text-slate-500">種目</dt>
+              <dd className="mt-1 font-semibold text-slate-100">{form.event}</dd>
+            </div>
+          </dl>
+        </section>
 
         <Field label="ドロー" required>
           <div className="grid grid-cols-2 gap-2">

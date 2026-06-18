@@ -11,7 +11,7 @@ import {
   TournamentStatusBadge,
 } from "@/components/tennis/appLayout";
 import {
-  drawSizeLabel,
+  getTournamentStatus,
   matchStatusText,
   roundLabel,
   sortMatchesByRound,
@@ -32,13 +32,20 @@ export function TournamentScreen({
 }) {
   const sortedMatches = sortMatchesByRound(tournament.matches, tournament.drawSize);
   const latestMatch = sortedMatches[sortedMatches.length - 1] ?? null;
+  const status = getTournamentStatus(tournament);
+  const tournamentFinished =
+    status === "eliminated" || status === "champion" || status === "done";
   const canAddNextMatch =
-    !latestMatch || (latestMatch.status === "done" && latestMatch.result === "win" && latestMatch.round !== "F");
+    !tournamentFinished &&
+    (!latestMatch ||
+      (latestMatch.status === "done" &&
+        (latestMatch.drawSize === "qualifying" ||
+          (latestMatch.result === "win" && latestMatch.round !== "F"))));
   const hasOpenMatch = tournament.matches.some((match) => match.status !== "done");
 
   return (
     <AppShell bottomPadding={canAddNextMatch && !hasOpenMatch}>
-      <ScreenHeader title="大会詳細" subtitle={tournament.name} onBack={onBack} />
+      <ScreenHeader title={tournament.name} subtitle={`${tournament.date} · ${tournament.grade} · ${tournament.event}`} onBack={onBack} />
 
       <Card className="rounded-2xl border-slate-700 bg-[#202b3d] text-slate-100">
         <CardHeader>
@@ -46,10 +53,10 @@ export function TournamentScreen({
             <div>
               <CardTitle>{tournamentProgressText(tournament)}</CardTitle>
               <CardDescription className="mt-2 text-slate-400">
-                {tournament.date} · {tournament.grade} · {tournament.event} · {drawSizeLabel(tournament.drawSize)}
+                {tournament.date} · {tournament.grade} · {tournament.event}
               </CardDescription>
             </div>
-            <TournamentStatusBadge status={tournament.status} />
+            <TournamentStatusBadge status={status} />
           </div>
         </CardHeader>
         <CardContent className="grid grid-cols-3 gap-2">

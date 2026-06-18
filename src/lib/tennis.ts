@@ -41,10 +41,6 @@ export function createDefaultTournamentForm(): TournamentForm {
     tournament: "",
     grade: "4C",
     event: "U12男子シングルス",
-    drawSize: "main",
-    round: "MAIN",
-    opponent: "",
-    opponentMemo: "",
   };
 }
 
@@ -68,32 +64,17 @@ export function createEditMatchForm(match?: MatchRecord | null): EditMatchForm {
   };
 }
 
-export function createTournament(form: TournamentForm, status: MatchStatus): Tournament {
+export function createTournament(form: TournamentForm, status: TournamentStatus = "draft"): Tournament {
   const tournamentId = `t-${Date.now()}`;
-  const tournament: Tournament = {
+  return {
     id: tournamentId,
     name: form.tournament.trim(),
     date: form.date,
     grade: form.grade,
     event: form.event,
-    drawSize: form.drawSize,
-    status: status === "recording" ? "active" : "draft",
+    drawSize: "main",
+    status,
     matches: [],
-  };
-
-  const shouldCreateFirstMatch = status === "recording" || Boolean(form.opponent.trim());
-  if (!shouldCreateFirstMatch) return tournament;
-
-  return {
-    ...tournament,
-    matches: [
-      createMatchForTournament(tournament, {
-        status,
-        round: firstRound(form),
-        opponent: form.opponent.trim(),
-        opponentMemo: form.opponentMemo.trim(),
-      }),
-    ],
   };
 }
 
@@ -101,6 +82,7 @@ export function createMatchForTournament(
   tournament: Tournament,
   input: {
     status: MatchStatus;
+    drawSize?: DrawSize;
     round: Round;
     opponent: string;
     opponentMemo: string;
@@ -113,7 +95,7 @@ export function createMatchForTournament(
     tournament: tournament.name,
     grade: tournament.grade,
     event: tournament.event,
-    drawSize: tournament.drawSize,
+    drawSize: input.drawSize ?? tournament.drawSize,
     round: input.round,
     opponent: input.opponent,
     opponentMemo: input.opponentMemo,
@@ -127,20 +109,17 @@ export function createMatchForTournament(
   };
 }
 
-export function validateTournamentForm(form: TournamentForm, requireOpponent: boolean) {
+export function validateTournamentForm(form: TournamentForm) {
   const errors: Record<string, string> = {};
   if (!form.date) errors.date = "日付を入力してください。";
   if (!form.tournament.trim()) errors.tournament = "大会名を入力してください。";
   if (!form.grade) errors.grade = "グレードを選択してください。";
   if (!form.event) errors.event = "種目を選択してください。";
-  if (requireOpponent && !form.opponent.trim()) {
-    errors.opponent = "初戦を開始する場合は相手の名前を入力してください。";
-  }
   return errors;
 }
 
 export function validateEditMatchForm(form: EditMatchForm) {
-  const errors: Record<string, string> = validateTournamentForm(form, false);
+  const errors: Record<string, string> = {};
   if (!form.opponent.trim()) {
     errors.opponent = "相手の名前を入力してください。";
   }
@@ -175,12 +154,14 @@ export function replaceMatchInTournaments(
   return tournaments.map((tournament) => {
     if (tournament.id !== updatedMatch.tournamentId) return tournament;
 
+    const matches = tournament.matches.map((match) =>
+      match.id === updatedMatch.id ? updatedMatch : match,
+    );
+
     return {
       ...tournament,
-      status: status ?? tournament.status,
-      matches: tournament.matches.map((match) =>
-        match.id === updatedMatch.id ? updatedMatch : match,
-      ),
+      status: status ?? getTournamentStatus({ ...tournament, matches }),
+      matches,
     };
   });
 }
@@ -188,7 +169,7 @@ export function replaceMatchInTournaments(
 export function updateTournamentMetadataAndMatch(
   tournaments: Tournament[],
   updatedMatch: MatchRecord,
-  meta: Pick<Tournament, "name" | "date" | "grade" | "event" | "drawSize">,
+  meta: Pick<Tournament, "name" | "date" | "grade" | "event">,
 ) {
   const nextTournaments = tournaments.map((tournament) => {
     if (tournament.id !== updatedMatch.tournamentId) return tournament;
@@ -204,7 +185,6 @@ export function updateTournamentMetadataAndMatch(
           tournament: meta.name,
           grade: meta.grade,
           event: meta.event,
-          drawSize: meta.drawSize,
         };
       }),
     };
@@ -216,7 +196,7 @@ export function updateTournamentMetadataAndMatch(
   };
 }
 
-export function firstRound(draw: DrawSize | Pick<TournamentForm, "drawSize" | "round">): Round {
+export function firstRound(draw: DrawSize | Pick<PrepareMatchForm, "drawSize" | "round">): Round {
   if (typeof draw === "string") return draw === "qualifying" ? "QUALIFYING" : "MAIN";
   return draw.drawSize === "qualifying" ? "QUALIFYING" : draw.round;
 }
@@ -252,29 +232,41 @@ export function nextRound(round: Round): Round | null {
 
 export function nextRoundForTournament(tournament: Tournament) {
   const sorted = sortMatchesByRound(tournament.matches, tournament.drawSize);
+  const latestDone = sorted.filter((match) => match.status === "done").at(-1);
+  if (latestDone?.drawSize === "qualifying") return "QUALIFYING";
+
   const latestDoneWin = sorted
     .filter((match) => match.status === "done" && match.result === "win")
     .at(-1);
   if (!latestDoneWin) return firstRound(tournament.drawSize);
-  return nextRoundInDraw(latestDoneWin.round, tournament.drawSize);
+  return nextRoundInDraw(latestDoneWin.round, latestDoneWin.drawSize);
 }
 
-export function sortMatchesByRound(matches: MatchRecord[], drawSize: DrawSize) {
-  const order = roundOptionsForDraw(drawSize);
+export function sortMatchesByRound(matches: MatchRecord[], drawSize?: DrawSize) {
+  const drawOrder: Record<DrawSize, number> = {
+    qualifying: 0,
+    main: 1,
+  };
+  const mainOrder = roundOptionsForDraw("main");
   return matches
     .slice()
-    .sort((a, b) => order.indexOf(a.round) - order.indexOf(b.round));
+    .sort((a, b) => {
+      const drawDiff = drawOrder[a.drawSize ?? drawSize ?? "main"] - drawOrder[b.drawSize ?? drawSize ?? "main"];
+      if (drawDiff !== 0) return drawDiff;
+      return mainOrder.indexOf(a.round) - mainOrder.indexOf(b.round);
+    });
 }
 
 export function tournamentProgressText(tournament: Tournament) {
-  if (tournament.status === "champion") return "優勝";
-  if (tournament.status === "eliminated") return "大会終了";
+  const status = getTournamentStatus(tournament);
+  if (status === "champion") return "優勝";
+  if (status === "eliminated") return "大会終了";
   const sorted = sortMatchesByRound(tournament.matches, tournament.drawSize);
   const latest = sorted[sorted.length - 1];
-  if (!latest) return `${roundLabel(firstRound(tournament.drawSize))} から開始`;
+  if (!latest) return "試合未作成";
   if (latest.status !== "done") return `${roundLabel(latest.round)} ${matchStatusText(latest)}`;
   if (latest.result === "win" && latest.round !== "F") {
-    const next = nextRoundInDraw(latest.round, tournament.drawSize);
+    const next = nextRoundInDraw(latest.round, latest.drawSize);
     return next ? `${roundLabel(next)} へ` : roundLabel(latest.round);
   }
   return roundLabel(latest.round);
@@ -372,8 +364,18 @@ export function parseScore(score: string) {
 }
 
 export function getTournamentStatusAfterMatch(match: MatchRecord): TournamentStatus {
-  if (match.result === "loss") return "eliminated";
+  if (match.result === "loss" && match.drawSize === "main") return "eliminated";
   if (match.result === "win" && match.round === "F") return "champion";
+  return "active";
+}
+
+export function getTournamentStatus(tournament: Tournament): TournamentStatus {
+  const sorted = sortMatchesByRound(tournament.matches, tournament.drawSize);
+  const latest = sorted.at(-1);
+  if (!latest) return "draft";
+  if (sorted.some((match) => match.status !== "done")) return "active";
+  if (latest.result === "loss" && latest.drawSize === "main") return "eliminated";
+  if (latest.result === "win" && latest.round === "F") return "champion";
   return "active";
 }
 

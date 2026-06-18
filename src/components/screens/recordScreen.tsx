@@ -111,22 +111,14 @@ export function RecordScreen({
 
 function RecordGroup({
   title,
-  tone,
   children,
 }: {
   title: string;
   tone: "slate" | "blue" | "purple" | "orange";
   children: React.ReactNode;
 }) {
-  const border = {
-    slate: "border-slate-700",
-    blue: "border-blue-700/70",
-    purple: "border-purple-700/70",
-    orange: "border-orange-700/70",
-  }[tone];
-
   return (
-    <section className={`rounded-2xl border ${border} bg-[#121d2f] p-4 shadow-sm`}>
+    <section>
       <h2 className="mb-3 text-sm font-semibold text-slate-300">{title}</h2>
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">{children}</div>
     </section>

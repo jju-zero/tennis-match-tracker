@@ -38,8 +38,8 @@ export function MatchDetailScreen({
   return (
     <AppShell bottomPadding={match.status !== "done"}>
       <ScreenHeader
-        title="試合詳細"
-        subtitle={`${roundLabel(match.round)} · vs ${match.opponent || "相手未定"}`}
+        title={match.tournament}
+        subtitle={`${match.date} · ${match.grade} · ${match.event}`}
         onBack={onBack}
         action={
           <Button
@@ -59,7 +59,7 @@ export function MatchDetailScreen({
             <div>
               <CardTitle>{match.score || matchStatusText(match)}</CardTitle>
               <CardDescription className="mt-2 text-slate-400">
-                {match.tournament} · {match.date} · {match.grade} · {match.event}
+                {roundLabel(match.round)} · vs {match.opponent || "相手未定"}
               </CardDescription>
             </div>
             <ResultBadge result={match.result} status={match.status} />

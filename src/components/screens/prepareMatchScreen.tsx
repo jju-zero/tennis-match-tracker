@@ -5,13 +5,19 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import {
   AppShell,
+  ChoiceButton,
   Field,
   FixedAction,
   ScreenHeader,
   SectionTitle,
   inputClass,
 } from "@/components/tennis/appLayout";
-import { drawSizeLabel, roundLabel } from "@/lib/tennis";
+import {
+  drawSizeLabel,
+  drawSizeOptions,
+  mainRoundOptions,
+  roundLabel,
+} from "@/lib/tennis";
 import type { MatchRecord, PrepareMatchForm } from "@/types/tennis";
 
 export function PrepareMatchScreen({
@@ -33,7 +39,7 @@ export function PrepareMatchScreen({
 }) {
   return (
     <AppShell bottomPadding>
-      <ScreenHeader title="記録開始" subtitle={`${roundLabel(match.round)} · ${match.tournament}`} onBack={onBack} />
+      <ScreenHeader title="記録開始" subtitle={`${roundLabel(form.round)} · ${match.tournament}`} onBack={onBack} />
 
       <div className="space-y-5">
         <section className="space-y-3 rounded-2xl border border-slate-700 bg-[#202b3d] p-4">
@@ -54,11 +60,47 @@ export function PrepareMatchScreen({
             <div>
               <dt className="text-slate-500">ドロー</dt>
               <dd className="mt-1 font-semibold text-slate-100">
-                {drawSizeLabel(match.drawSize)} · {roundLabel(match.round)}
+                {drawSizeLabel(form.drawSize)} · {roundLabel(form.round)}
               </dd>
             </div>
           </dl>
         </section>
+
+        <Field label="ドロー" required>
+          <div className="grid grid-cols-2 gap-2">
+            {drawSizeOptions.map((drawSize) => (
+              <ChoiceButton
+                key={drawSize}
+                selected={form.drawSize === drawSize}
+                onClick={() =>
+                  onChange({
+                    ...form,
+                    drawSize,
+                    round: drawSize === "qualifying" ? "QUALIFYING" : "MAIN",
+                  })
+                }
+              >
+                {drawSizeLabel(drawSize)}
+              </ChoiceButton>
+            ))}
+          </div>
+        </Field>
+
+        {form.drawSize === "main" && (
+          <Field label="ラウンド" hint="本戦128などは本戦を選択">
+            <div className="grid grid-cols-3 gap-2">
+              {mainRoundOptions.map((round) => (
+                <ChoiceButton
+                  key={round}
+                  selected={form.round === round}
+                  onClick={() => onChange({ ...form, round })}
+                >
+                  {roundLabel(round)}
+                </ChoiceButton>
+              ))}
+            </div>
+          </Field>
+        )}
 
         <Field label="相手の名前" required error={errors.opponent}>
           <Input

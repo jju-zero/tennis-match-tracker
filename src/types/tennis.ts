@@ -72,24 +72,25 @@ export type TournamentForm = {
   tournament: string;
   grade: Grade;
   event: EventType;
-  drawSize: DrawSize;
-  round: Round;
-  opponent: string;
-  opponentMemo: string;
 };
 
 export type EditMatchForm = TournamentForm & {
   id: string;
   tournamentId: string;
   status: MatchStatus;
+  drawSize: DrawSize;
+  round: Round;
+  opponent: string;
+  opponentMemo: string;
   result: Result;
   score: string;
   note: string;
-  round: Round;
   stats: Stats;
 };
 
 export type PrepareMatchForm = {
+  drawSize: DrawSize;
+  round: Round;
   opponent: string;
   opponentMemo: string;
 };

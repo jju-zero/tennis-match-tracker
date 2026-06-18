@@ -28,7 +28,6 @@ import {
   parseScore,
   replaceMatchInTournaments,
   sortMatchesByRound,
-  updateTournamentMetadataAndMatch,
   validateEditMatchForm,
   validatePrepareMatchForm,
   validateTournamentForm,
@@ -77,6 +76,8 @@ export function TennisApp() {
   const [editErrors, setEditErrors] = useState<Record<string, string>>({});
   const [prepareMatch, setPrepareMatch] = useState<MatchRecord | null>(null);
   const [prepareForm, setPrepareForm] = useState<PrepareMatchForm>({
+    drawSize: "main",
+    round: "MAIN",
     opponent: "",
     opponentMemo: "",
   });
@@ -187,6 +188,8 @@ export function TennisApp() {
       if (route.screen === "prepareMatch") {
         setPrepareMatch(nextMatch);
         setPrepareForm({
+          drawSize: nextMatch.drawSize,
+          round: nextMatch.round,
           opponent: nextMatch.opponent,
           opponentMemo: nextMatch.opponentMemo,
         });
@@ -244,8 +247,8 @@ export function TennisApp() {
     router.push(matchPath(match.id));
   }
 
-  function createNewTournament(status: MatchRecord["status"]) {
-    const nextErrors = validateTournamentForm(form, status === "recording");
+  function createNewTournament(status: Tournament["status"]) {
+    const nextErrors = validateTournamentForm(form);
     setErrors(nextErrors);
     if (Object.keys(nextErrors).length > 0) return null;
 
@@ -257,18 +260,34 @@ export function TennisApp() {
   }
 
   function startFirstMatch() {
-    const tournament = createNewTournament("recording");
-    const match = tournament?.matches[0];
-    if (!match) return;
+    const tournament = createNewTournament("active");
+    if (!tournament) return;
 
-    setActiveMatch(match);
+    const firstMatch = createMatchForTournament(tournament, {
+      status: "draft",
+      drawSize: "main",
+      round: "MAIN",
+      opponent: "",
+      opponentMemo: "",
+    });
+    const updatedTournament: Tournament = {
+      ...tournament,
+      matches: [firstMatch],
+    };
+
+    setTournaments((current) =>
+      current.map((item) => (item.id === tournament.id ? updatedTournament : item)),
+    );
+    setSelectedTournament(updatedTournament);
+    setSelectedMatch(firstMatch);
+    setActiveMatch(null);
     setStats({ ...emptyStats });
     setHistory([]);
     setFinishResult("win");
     setFinishScore("");
     setFinishNote("");
-    setFinishOpponentMemo(match.opponentMemo);
-    router.push(recordPath(match.id));
+    setFinishOpponentMemo("");
+    openPrepareMatch(firstMatch);
   }
 
   function saveDraftTournament() {
@@ -287,6 +306,7 @@ export function TennisApp() {
 
     const nextMatch = createMatchForTournament(tournament, {
       status: "draft",
+      drawSize: nextRound === "QUALIFYING" ? "qualifying" : "main",
       round: nextRound,
       opponent: "",
       opponentMemo: "",
@@ -385,6 +405,8 @@ export function TennisApp() {
     setSelectedMatch(match);
     setPrepareMatch(match);
     setPrepareForm({
+      drawSize: match.drawSize,
+      round: match.round,
       opponent: match.opponent,
       opponentMemo: match.opponentMemo,
     });
@@ -398,6 +420,8 @@ export function TennisApp() {
 
     const savedMatch: MatchRecord = {
       ...match,
+      drawSize: prepareForm.drawSize,
+      round: prepareForm.drawSize === "qualifying" ? "QUALIFYING" : prepareForm.round,
       opponent: prepareForm.opponent.trim(),
       opponentMemo: prepareForm.opponentMemo.trim(),
     };
@@ -420,6 +444,8 @@ export function TennisApp() {
     const nextMatch: MatchRecord = {
       ...match,
       status: "recording",
+      drawSize: prepareForm.drawSize,
+      round: prepareForm.drawSize === "qualifying" ? "QUALIFYING" : prepareForm.round,
       opponent: prepareForm.opponent.trim(),
       opponentMemo: prepareForm.opponentMemo.trim(),
     };
@@ -448,10 +474,6 @@ export function TennisApp() {
     const parsed = parseScore(editForm.score);
     const updatedMatch: MatchRecord = {
       ...targetMatch,
-      date: editForm.date,
-      tournament: editForm.tournament.trim(),
-      grade: editForm.grade,
-      event: editForm.event,
       drawSize: editForm.drawSize,
       round: editForm.round,
       opponent: editForm.opponent.trim(),
@@ -463,16 +485,8 @@ export function TennisApp() {
       opponentGames: editForm.status === "done" ? parsed.opponent : targetMatch.opponentGames,
       stats: { ...editForm.stats },
     };
-    const result = updateTournamentMetadataAndMatch(tournaments, updatedMatch, {
-      name: editForm.tournament.trim(),
-      date: editForm.date,
-      grade: editForm.grade,
-      event: editForm.event,
-      drawSize: editForm.drawSize,
-    });
 
-    setTournaments(result.tournaments);
-    setSelectedTournament(result.tournament);
+    replaceMatch(updatedMatch);
     setSelectedMatch(updatedMatch);
     if (activeMatch?.id === updatedMatch.id) {
       setActiveMatch(updatedMatch);
