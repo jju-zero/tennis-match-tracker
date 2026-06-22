@@ -32,7 +32,7 @@ export async function GET(request: NextRequest) {
     RankingCode: "900",
     FromAge: "20241231",
     ToAge: "20080101",
-    Area: "",
+    Area: "3",
     Prefecture: "",
     ColCode: "",
     DisPlaySequence: "0",
