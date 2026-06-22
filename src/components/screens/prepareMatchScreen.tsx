@@ -122,7 +122,7 @@ export function PrepareMatchScreen({
             />
             <Button
               type="button"
-              className="h-14 rounded-2xl bg-[#49df78] px-5 font-semibold text-slate-950 hover:bg-[#5bdd75]"
+              className="h-14 rounded-2xl bg-[#16a34a] px-5 font-semibold text-white hover:bg-[#15803d]"
               disabled={lookupLoading || !form.opponentRegistrationNumber.trim()}
               onClick={onLookupOpponent}
             >
@@ -154,7 +154,7 @@ export function PrepareMatchScreen({
       <FixedAction>
         <div className="space-y-3">
           <Button
-            className="h-16 w-full gap-2 rounded-2xl bg-[#49df78] text-base font-semibold text-slate-950 hover:bg-[#5bdd75]"
+            className="h-16 w-full gap-2 rounded-2xl bg-[#16a34a] text-base font-semibold text-white hover:bg-[#15803d]"
             onClick={onStart}
           >
             <Play className="size-5" />

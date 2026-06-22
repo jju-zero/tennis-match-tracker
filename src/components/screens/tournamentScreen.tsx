@@ -123,7 +123,7 @@ export function TournamentScreen({
                 キャンセル
               </Button>
               <Button
-                className="h-16 rounded-2xl bg-[#49df78] text-base font-semibold text-slate-950 hover:bg-[#5bdd75]"
+                className="h-16 rounded-2xl bg-[#16a34a] text-base font-semibold text-white hover:bg-[#15803d]"
                 onClick={onSaveEdit}
               >
                 保存する
@@ -148,14 +148,14 @@ export function TournamentScreen({
         </CardHeader>
         <CardContent className="grid grid-cols-3 gap-2">
           <GameCount label="試合数" value={`${tournament.matches.length}`} tone="text-slate-100" />
-          <GameCount label="勝利" value={`${tournament.matches.filter((match) => match.result === "win").length}`} tone="text-[#6ee787]" />
+          <GameCount label="勝利" value={`${tournament.matches.filter((match) => match.result === "win").length}`} tone="text-[#4ade80]" />
           <GameCount label="敗戦" value={`${tournament.matches.filter((match) => match.result === "loss").length}`} tone="text-[#ff7373]" />
         </CardContent>
       </Card>
 
       {tournament.drawUrl && (
         <a
-          className="block rounded-2xl border border-[#6ee787]/40 bg-[#142a26] p-4 text-sm font-semibold text-[#6ee787] transition hover:bg-[#18352f]"
+          className="block rounded-2xl border border-[#4ade80]/40 bg-[#142a26] p-4 text-sm font-semibold text-[#4ade80] transition hover:bg-[#18352f]"
           href={tournament.drawUrl}
           target="_blank"
           rel="noreferrer"
@@ -185,7 +185,7 @@ export function TournamentScreen({
             {displayMatches.map((match) => (
               <button
                 key={match.id}
-                className="w-full rounded-2xl border border-slate-700 bg-[#202b3d] p-4 text-left transition hover:border-[#6ee787]/70 hover:bg-[#26344a]"
+                className="w-full rounded-2xl border border-slate-700 bg-[#202b3d] p-4 text-left transition hover:border-[#4ade80]/70 hover:bg-[#26344a]"
                 onClick={() => onOpenMatch(match)}
               >
                 <div className="flex items-start justify-between gap-3">
@@ -205,7 +205,7 @@ export function TournamentScreen({
       {canAddNextMatch && !hasOpenMatch && (
         <FixedAction>
           <Button
-            className="h-16 w-full rounded-2xl bg-[#49df78] text-base font-semibold text-slate-950 hover:bg-[#5bdd75]"
+            className="h-16 w-full rounded-2xl bg-[#16a34a] text-base font-semibold text-white hover:bg-[#15803d]"
             onClick={onAddNextMatch}
           >
             {latestMatch ? "次の試合を追加" : "最初の試合を追加"}

@@ -78,7 +78,7 @@ export function SummaryCard({ label, value, trend }: { label: string; value: str
           {trend && <TrendIcon trend={trend} />}
           {label}
         </div>
-        <p className="mt-3 text-3xl font-semibold">{value}</p>
+        <p className="mt-3 text-3xl font-semibold text-[#4ade80]">{value}</p>
       </CardContent>
     </Card>
   );
@@ -130,7 +130,7 @@ export function ChoiceButton({
       variant={selected ? "default" : "outline"}
       className={`h-14 rounded-lg text-base font-semibold ${
         selected
-          ? "bg-[#49df78] text-slate-950 hover:bg-[#5bdd75]"
+          ? "bg-[#16a34a] text-white hover:bg-[#15803d]"
           : "border-slate-600 bg-[#202b3d] text-slate-100 hover:bg-[#34445c]"
       }`}
       onClick={onClick}

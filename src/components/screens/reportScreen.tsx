@@ -80,7 +80,7 @@ export function ReportScreen({ matches, onBack }: { matches: MatchRecord[]; onBa
           <XAxis dataKey="label" tickLine={false} axisLine={false} tick={{ fill: "#94a3b8" }} />
           <YAxis domain={[0, 100]} tickLine={false} axisLine={false} tick={{ fill: "#94a3b8" }} />
           <Tooltip />
-          <Line type="monotone" dataKey="firstServe" name="1st" stroke="#49df78" strokeWidth={3} />
+          <Line type="monotone" dataKey="firstServe" name="1st" stroke="#4ade80" strokeWidth={3} />
           <Line type="monotone" dataKey="deuce" name="デュース" stroke="#69a9ff" strokeWidth={3} />
           <Line type="monotone" dataKey="ad" name="アド" stroke="#b69cff" strokeWidth={3} />
         </LineChart>
@@ -92,7 +92,7 @@ export function ReportScreen({ matches, onBack }: { matches: MatchRecord[]; onBa
           <XAxis dataKey="label" tickLine={false} axisLine={false} tick={{ fill: "#94a3b8" }} />
           <YAxis domain={[0, 100]} tickLine={false} axisLine={false} tick={{ fill: "#94a3b8" }} />
           <Tooltip />
-          <Line type="monotone" dataKey="returnRate" name="リターン" stroke="#49df78" strokeWidth={3} />
+          <Line type="monotone" dataKey="returnRate" name="リターン" stroke="#4ade80" strokeWidth={3} />
           <Line type="monotone" dataKey="chance" name="チャンス" stroke="#69a9ff" strokeWidth={3} />
           <Line type="monotone" dataKey="volley" name="ボレー" stroke="#b69cff" strokeWidth={3} />
         </LineChart>
@@ -162,7 +162,7 @@ function PeriodSegmentedControl({
             type="button"
             className={`h-16 rounded-[22px] text-base font-semibold transition sm:h-20 sm:text-xl ${
               selected
-                ? "bg-[#49df78] text-slate-950 shadow-sm"
+                ? "bg-[#16a34a] text-slate-950 shadow-sm"
                 : "text-slate-400 hover:bg-[#2b3950] hover:text-slate-100"
             }`}
             onClick={() => onChange(optionValue)}

@@ -1,4 +1,5 @@
 import { ArrowRight, CirclePlus } from "lucide-react";
+import Image from "next/image";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -37,13 +38,16 @@ export function HomeScreen({
   return (
     <AppShell bottomPadding>
       <header className="flex items-start justify-between gap-4">
-        <div>
-          <p className="text-sm font-medium text-slate-400">ジュニアテニス</p>
-          <h1 className="mt-1 text-3xl font-semibold tracking-normal">大会記録</h1>
+        <div className="flex items-center gap-3">
+          <Image src="/logo.svg" alt="Tennis Racket Logo" width={48} height={48} />
+          <div>
+            <p className="text-sm font-medium text-slate-400">ジュニアテニス</p>
+            <h1 className="mt-1 text-3xl font-semibold tracking-normal">大会記録</h1>
+          </div>
         </div>
         <Button
           variant="ghost"
-          className="gap-2 text-[#6ee787] hover:bg-slate-800/70 hover:text-[#6ee787]"
+          className="gap-2 text-[#4ade80] hover:bg-slate-800/70 hover:text-[#4ade80]"
           onClick={onReport}
         >
           成長レポート
@@ -83,7 +87,7 @@ export function HomeScreen({
 
       <FixedAction>
         <Button
-          className="h-16 w-full gap-2 rounded-2xl bg-[#6ee787] text-base font-semibold text-slate-950 hover:bg-[#5bdd75]"
+          className="h-16 w-full gap-2 rounded-2xl bg-[#16a34a] text-base font-semibold text-white hover:bg-[#15803d]"
           onClick={onNew}
         >
           <CirclePlus className="size-5" />
@@ -110,7 +114,7 @@ function TournamentCard({
 
   return (
     <button
-      className="w-full rounded-2xl border border-slate-700 bg-[#202b3d] p-4 text-left shadow-sm transition hover:border-[#6ee787]/70 hover:bg-[#26344a]"
+      className="w-full rounded-2xl border border-slate-700 bg-[#202b3d] p-4 text-left shadow-sm transition hover:border-[#4ade80]/70 hover:bg-[#26344a]"
       onClick={onClick}
     >
       <div className="flex items-start justify-between gap-3">
@@ -131,10 +135,10 @@ function TournamentCard({
         <div className="flex shrink-0 flex-col items-end gap-3">
           <TournamentStatusBadge status={status} />
           {pointResult && (
-            <p className="text-lg font-semibold text-[#6ee787]">{pointResult.points}pt</p>
+            <p className="text-lg font-semibold text-[#4ade80]">{pointResult.points}pt</p>
           )}
           <div className="text-right">
-            <p className="text-lg font-semibold text-[#6ee787]">{tournament.matches.length}</p>
+            <p className="text-lg font-semibold text-[#4ade80]">{tournament.matches.length}</p>
             <p className="text-xs text-slate-400">試合</p>
           </div>
         </div>

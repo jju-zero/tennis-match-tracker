@@ -67,7 +67,7 @@ export function MatchDetailScreen({
           </div>
         </CardHeader>
         <CardContent className="grid grid-cols-3 gap-2">
-          <GameCount label="自分" value={`${match.playerGames}G`} tone="text-[#6ee787]" />
+          <GameCount label="自分" value={`${match.playerGames}G`} tone="text-[#4ade80]" />
           <GameCount label="相手" value={`${match.opponentGames}G`} tone="text-[#ff7373]" />
           <GameCount label="合計" value={`${games}G`} tone="text-slate-100" />
         </CardContent>
@@ -92,16 +92,6 @@ export function MatchDetailScreen({
         ]}
       />
       <DetailSection
-        title="ミス"
-        items={[
-          ["ネット", match.stats.net],
-          ["ベースアウト", match.stats.baseOut],
-          ["サイドアウト", match.stats.sideOut],
-          ["ミス合計", totalMisses(match.stats)],
-          ["10Gあたりミス", perTen(totalMisses(match.stats), games)],
-        ]}
-      />
-      <DetailSection
         title="チャンスボール / ボレー"
         items={[
           ["チャンス発生", match.stats.chances],
@@ -111,6 +101,16 @@ export function MatchDetailScreen({
           ["ボレー成功率", `${successRate(match.stats.volleyWins, match.stats.volleyTries)}%`],
         ]}
       />
+      <DetailSection
+        title="ミス"
+        items={[
+          ["ネット", match.stats.net],
+          ["ベースアウト", match.stats.baseOut],
+          ["サイドアウト", match.stats.sideOut],
+          ["ミス合計", totalMisses(match.stats)],
+          ["10Gあたりミス", perTen(totalMisses(match.stats), games)],
+        ]}
+      />
 
       <MemoBlock title="試合メモ" text={match.note || "メモなし"} />
       <MemoBlock title="相手メモ" text={match.opponentMemo || "メモなし"} />
@@ -118,7 +118,7 @@ export function MatchDetailScreen({
       {match.status !== "done" && (
         <FixedAction>
           <Button
-            className="h-16 w-full rounded-2xl bg-[#49df78] text-base font-semibold text-slate-950 hover:bg-[#5bdd75]"
+            className="h-16 w-full rounded-2xl bg-[#16a34a] text-base font-semibold text-white hover:bg-[#15803d]"
             onClick={onResume}
           >
             {match.status === "draft" ? "記録を開始する" : "記録を再開する"}

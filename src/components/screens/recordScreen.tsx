@@ -72,7 +72,7 @@ export function RecordScreen({
           </Button>
         </div>
         <div className="mx-auto mt-3 grid max-w-5xl grid-cols-5 gap-2">
-          <LiveStat label="1stサーブ率" value={`${summary.firstServe}%`} tone="text-[#6ee787]" />
+          <LiveStat label="1stサーブ率" value={`${summary.firstServe}%`} tone="text-[#4ade80]" />
           <LiveStat label="リターン" value={`${summary.returnRate}%`} tone="text-[#69a9ff]" />
           <LiveStat label="チャンスボール" value={`${summary.chanceBall}%`} tone="text-[#69a9ff]" />
           <LiveStat label="ミス" value={`${summary.totalMiss}`} tone="text-[#ffbd6e]" />
@@ -88,16 +88,16 @@ export function RecordScreen({
           onAddServe={addServe}
         />
 
-        <RecordGroup title="チャンスボール" tone="blue">
-          <RecordButton code="OPP" label="チャンスボール 発生" value={stats.chances} tone="blue" onClick={() => onAdd({ chances: 1 })} />
-          <RecordButton code="WIN" label="チャンスボール 成功" value={stats.chanceWins} tone="blue" onClick={() => onAdd({ chanceWins: 1 })} />
-        </RecordGroup>
-
         <RecordGroup title="リターン" tone="blue">
           <RecordButton code="IN" label="リターン IN" value={stats.returnIn} tone="green" onClick={() => onAdd({ returnIn: 1 })} />
           <RecordButton code="OUT" label="リターン OUT" value={stats.returnOut} tone="red" onClick={() => onAdd({ returnOut: 1 })} />
         </RecordGroup>
 
+        <RecordGroup title="チャンスボール" tone="blue">
+          <RecordButton code="OPP" label="チャンスボール 発生" value={stats.chances} tone="blue" onClick={() => onAdd({ chances: 1 })} />
+          <RecordButton code="WIN" label="チャンスボール 成功" value={stats.chanceWins} tone="blue" onClick={() => onAdd({ chanceWins: 1 })} />
+        </RecordGroup>
+        
         <RecordGroup title="ボレー" tone="purple">
           <RecordButton code="VOL" label="ボレー 試み" value={stats.volleyTries} tone="purple" onClick={() => onAdd({ volleyTries: 1 })} />
           <RecordButton code="V" label="ボレー 成功" value={stats.volleyWins} tone="purple" onClick={() => onAdd({ volleyWins: 1 })} />
@@ -117,11 +117,11 @@ export function RecordScreen({
             className="h-16 gap-2 rounded-2xl border-slate-600 bg-[#202b3d] text-base font-semibold text-slate-100 hover:bg-[#34445c]"
             onClick={onTemporarySave}
           >
-            <Save className="size-5 text-[#6ee787]" />
+            <Save className="size-5 text-[#4ade80]" />
             一時保存
           </Button>
           <Button
-            className="h-16 gap-2 rounded-2xl bg-[#49df78] text-base font-semibold text-slate-950 hover:bg-[#5bdd75]"
+            className="h-16 gap-2 rounded-2xl bg-[#16a34a] text-base font-semibold text-white hover:bg-[#15803d]"
             onClick={onFinish}
           >
             <Flag className="size-5" />
@@ -186,7 +186,7 @@ function ServeSideButton({
       type="button"
       className={`min-h-20 rounded-2xl border p-4 text-left transition active:scale-[0.99] ${
         selected
-          ? "border-[#6ee787] bg-emerald-950/40 text-[#6ee787]"
+          ? "border-[#4ade80] bg-emerald-950/40 text-[#4ade80]"
           : "border-slate-700 bg-[#202b3d] text-slate-300"
       }`}
       onClick={onClick}
@@ -229,7 +229,7 @@ function RecordButton({
   onClick: () => void;
 }) {
   const colors = {
-    green: "border-emerald-600/45 bg-emerald-950/35 text-[#6ee787]",
+    green: "border-emerald-600/45 bg-emerald-950/35 text-[#4ade80]",
     red: "border-rose-600/45 bg-rose-950/30 text-[#ff7373]",
     blue: "border-blue-600/45 bg-blue-950/30 text-[#7eb6ff]",
     purple: "border-purple-600/45 bg-purple-950/30 text-[#b69cff]",

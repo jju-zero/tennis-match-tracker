@@ -75,7 +75,7 @@ export function FinishScreen({
           />
         </Field>
         <div className="grid grid-cols-4 gap-2 text-sm">
-          <GameCount label="自分" value={`${parsedScore.player}G`} tone="text-[#6ee787]" />
+          <GameCount label="自分" value={`${parsedScore.player}G`} tone="text-[#4ade80]" />
           <GameCount label="相手" value={`${parsedScore.opponent}G`} tone="text-[#ff7373]" />
           <GameCount label="合計" value={`${totalGames}G`} tone="text-slate-100" />
           <GameCount label="10GあたりDF" value={perTen(stats.doubleFaults, totalGames)} tone="text-amber-700" />
@@ -124,7 +124,7 @@ export function FinishScreen({
 
       <FixedAction>
         <Button
-          className="h-16 w-full gap-2 rounded-2xl bg-[#49df78] text-base font-semibold text-slate-950 hover:bg-[#5bdd75]"
+          className="h-16 w-full gap-2 rounded-2xl bg-[#16a34a] text-base font-semibold text-white hover:bg-[#15803d]"
           onClick={onSave}
         >
           <Save className="size-5" />

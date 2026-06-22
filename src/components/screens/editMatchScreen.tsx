@@ -119,7 +119,7 @@ export function EditMatchScreen({
             />
             <Button
               type="button"
-              className="h-14 rounded-2xl bg-[#49df78] px-5 font-semibold text-slate-950 hover:bg-[#5bdd75]"
+              className="h-14 rounded-2xl bg-[#16a34a] px-5 font-semibold text-white hover:bg-[#15803d]"
               disabled={lookupLoading || !form.opponentRegistrationNumber.trim()}
               onClick={onLookupOpponent}
             >
@@ -223,7 +223,7 @@ export function EditMatchScreen({
 
       <FixedAction>
         <Button
-          className="h-16 w-full gap-2 rounded-2xl bg-[#49df78] text-base font-semibold text-slate-950 hover:bg-[#5bdd75]"
+          className="h-16 w-full gap-2 rounded-2xl bg-[#16a34a] text-base font-semibold text-white hover:bg-[#15803d]"
           onClick={onSave}
         >
           <Save className="size-5" />
@@ -301,7 +301,7 @@ function ServeRateCard({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-xl border border-slate-700 bg-[#182337] p-3">
       <p className="text-xs font-medium text-slate-400">{label}</p>
-      <p className="mt-1 text-xl font-semibold text-[#6ee787]">{value}</p>
+      <p className="mt-1 text-xl font-semibold text-[#4ade80]">{value}</p>
     </div>
   );
 }

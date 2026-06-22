@@ -41,7 +41,7 @@ export function NewTournamentScreen({
       <FixedAction>
         <div className="space-y-3">
           <Button
-            className="h-16 w-full rounded-2xl bg-[#49df78] text-base font-semibold text-slate-950 hover:bg-[#5bdd75]"
+            className="h-16 w-full rounded-2xl bg-[#16a34a] text-base font-semibold text-white hover:bg-[#15803d]"
             onClick={onStart}
           >
             大会を作成して試合登録

@@ -4,6 +4,10 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "Tennis Match Tracker",
   description: "Junior tennis match notes and growth tracking",
+  icons: {
+    icon: "/favicon.svg",
+    apple: "/logo.svg",
+  },
 };
 
 export default function RootLayout({
