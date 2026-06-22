@@ -22,6 +22,7 @@ import {
   buildSummary,
   firstServeRate,
   perTen,
+  returnRate,
   sideRate,
   successRate,
   totalGames,
@@ -44,6 +45,7 @@ export function ReportScreen({ matches, onBack }: { matches: MatchRecord[]; onBa
         firstServe: firstServeRate(match.stats),
         deuce: sideRate(match.stats.deuceIn, match.stats.deuceOut),
         ad: sideRate(match.stats.adIn, match.stats.adOut),
+        returnRate: returnRate(match.stats),
         chance: successRate(match.stats.chanceWins, match.stats.chances),
         volley: successRate(match.stats.volleyWins, match.stats.volleyTries),
         doubleFaults: Number(perTen(match.stats.doubleFaults, games)),
@@ -62,6 +64,7 @@ export function ReportScreen({ matches, onBack }: { matches: MatchRecord[]; onBa
           <SummaryCard label="1stサーブ成功率" value={`${summary.firstServe}%`} />
           <SummaryCard label="デュースサイド成功率" value={`${summary.deuce}%`} />
           <SummaryCard label="アドサイド成功率" value={`${summary.ad}%`} />
+          <SummaryCard label="リターン成功率" value={`${summary.returnRate}%`} />
           <SummaryCard label="チャンスボール成功率" value={`${summary.chanceBall}%`} />
           <SummaryCard label="ボレー成功率" value={`${summary.volley}%`} />
           <SummaryCard label="ダブルフォルト" value={`${summary.doubleFaults}本`} />
@@ -83,12 +86,13 @@ export function ReportScreen({ matches, onBack }: { matches: MatchRecord[]; onBa
         </LineChart>
       </ChartCard>
 
-      <ChartCard title="チャンスボール・ボレー成功率">
+      <ChartCard title="リターン・チャンスボール・ボレー成功率">
         <LineChart data={data} margin={{ left: -18, right: 10, top: 10, bottom: 0 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
           <XAxis dataKey="label" tickLine={false} axisLine={false} tick={{ fill: "#94a3b8" }} />
           <YAxis domain={[0, 100]} tickLine={false} axisLine={false} tick={{ fill: "#94a3b8" }} />
           <Tooltip />
+          <Line type="monotone" dataKey="returnRate" name="リターン" stroke="#49df78" strokeWidth={3} />
           <Line type="monotone" dataKey="chance" name="チャンス" stroke="#69a9ff" strokeWidth={3} />
           <Line type="monotone" dataKey="volley" name="ボレー" stroke="#b69cff" strokeWidth={3} />
         </LineChart>
@@ -121,7 +125,7 @@ export function ReportScreen({ matches, onBack }: { matches: MatchRecord[]; onBa
                     {match.date.slice(5)} {match.opponent}
                   </p>
                   <p className="mt-1 text-sm text-slate-400">
-                    1st {firstServeRate(match.stats)}% · チャンス {successRate(match.stats.chanceWins, match.stats.chances)}% · DF {match.stats.doubleFaults}
+                    1st {firstServeRate(match.stats)}% · リターン {returnRate(match.stats)}% · チャンス {successRate(match.stats.chanceWins, match.stats.chances)}% · DF {match.stats.doubleFaults}
                   </p>
                 </div>
                 <ResultBadge result={match.result} status={match.status} />

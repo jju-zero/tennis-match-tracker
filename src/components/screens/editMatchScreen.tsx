@@ -15,8 +15,11 @@ import {
 import {
   drawSizeOptions,
   drawSizeLabel,
+  firstServeRate,
   mainRoundOptions,
+  returnRate,
   roundLabel,
+  sideRate,
 } from "@/lib/tennis";
 import type { EditMatchForm, Stats } from "@/types/tennis";
 
@@ -170,17 +173,11 @@ export function EditMatchScreen({
 
         <section className="space-y-4 rounded-2xl border border-slate-700 bg-[#202b3d] p-4">
           <SectionTitle>記録を編集</SectionTitle>
-          <StatsEditGroup
-            title="サーブ"
-            items={[
-              ["firstIn", "1st成功"],
-              ["firstOut", "1st失敗"],
-              ["deuceIn", "デュース成功"],
-              ["deuceOut", "デュース失敗"],
-              ["adIn", "アド成功"],
-              ["adOut", "アド失敗"],
-              ["doubleFaults", "DF"],
-            ]}
+          <ServeStatsEditGroup
+            stats={form.stats}
+            onChange={(stats) => onChange({ ...form, stats })}
+          />
+          <ReturnStatsEditGroup
             stats={form.stats}
             onChange={(stats) => onChange({ ...form, stats })}
           />
@@ -237,6 +234,133 @@ export function EditMatchScreen({
   );
 }
 
+function ServeStatsEditGroup({
+  stats,
+  onChange,
+}: {
+  stats: Stats;
+  onChange: (stats: Stats) => void;
+}) {
+  return (
+    <div className="space-y-3">
+      <p className="text-sm font-semibold text-slate-300">サーブ</p>
+      <div className="grid grid-cols-3 gap-2">
+        <ServeRateCard label="1st" value={`${firstServeRate(stats)}%`} />
+        <ServeRateCard label="デュース" value={`${sideRate(stats.deuceIn, stats.deuceOut)}%`} />
+        <ServeRateCard label="アド" value={`${sideRate(stats.adIn, stats.adOut)}%`} />
+      </div>
+      <div className="grid grid-cols-3 gap-3">
+        <StatNumberInput label="1st IN" statKey="firstIn" stats={stats} onChange={onChange} />
+        <StatNumberInput label="1st OUT" statKey="firstOut" stats={stats} onChange={onChange} />
+        <StatNumberInput label="DF" statKey="doubleFaults" stats={stats} onChange={onChange} />
+      </div>
+      <div className="grid gap-3 sm:grid-cols-2">
+        <ServeSideEditCard
+          title="デュース"
+          inKey="deuceIn"
+          outKey="deuceOut"
+          stats={stats}
+          onChange={onChange}
+        />
+        <ServeSideEditCard
+          title="アド"
+          inKey="adIn"
+          outKey="adOut"
+          stats={stats}
+          onChange={onChange}
+        />
+      </div>
+    </div>
+  );
+}
+
+function ReturnStatsEditGroup({
+  stats,
+  onChange,
+}: {
+  stats: Stats;
+  onChange: (stats: Stats) => void;
+}) {
+  return (
+    <div className="space-y-3">
+      <p className="text-sm font-semibold text-slate-300">リターン</p>
+      <div className="grid grid-cols-3 gap-2">
+        <ServeRateCard label="成功率" value={`${returnRate(stats)}%`} />
+        <ServeRateCard label="IN" value={`${stats.returnIn}`} />
+        <ServeRateCard label="OUT" value={`${stats.returnOut}`} />
+      </div>
+      <div className="grid grid-cols-2 gap-3">
+        <StatNumberInput label="IN" statKey="returnIn" stats={stats} onChange={onChange} />
+        <StatNumberInput label="OUT" statKey="returnOut" stats={stats} onChange={onChange} />
+      </div>
+    </div>
+  );
+}
+
+function ServeRateCard({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-xl border border-slate-700 bg-[#182337] p-3">
+      <p className="text-xs font-medium text-slate-400">{label}</p>
+      <p className="mt-1 text-xl font-semibold text-[#6ee787]">{value}</p>
+    </div>
+  );
+}
+
+function ServeSideEditCard({
+  title,
+  inKey,
+  outKey,
+  stats,
+  onChange,
+}: {
+  title: string;
+  inKey: keyof Stats;
+  outKey: keyof Stats;
+  stats: Stats;
+  onChange: (stats: Stats) => void;
+}) {
+  return (
+    <div className="rounded-2xl border border-slate-700 bg-[#182337] p-3">
+      <p className="mb-3 text-sm font-semibold text-slate-300">{title}</p>
+      <div className="grid grid-cols-2 gap-3">
+        <StatNumberInput label="IN" statKey={inKey} stats={stats} onChange={onChange} />
+        <StatNumberInput label="OUT" statKey={outKey} stats={stats} onChange={onChange} />
+      </div>
+    </div>
+  );
+}
+
+function StatNumberInput({
+  label,
+  statKey,
+  stats,
+  onChange,
+}: {
+  label: string;
+  statKey: keyof Stats;
+  stats: Stats;
+  onChange: (stats: Stats) => void;
+}) {
+  return (
+    <label className="space-y-1">
+      <span className="block text-xs font-medium text-slate-400">{label}</span>
+      <Input
+        type="number"
+        min={0}
+        inputMode="numeric"
+        value={stats[statKey]}
+        onChange={(event) =>
+          onChange({
+            ...stats,
+            [statKey]: normalizeStatValue(event.target.value),
+          })
+        }
+        className="h-12 rounded-xl border-slate-600 bg-[#34445c] text-base font-semibold text-slate-100"
+      />
+    </label>
+  );
+}
+
 function StatsEditGroup({
   title,
   items,
@@ -253,22 +377,7 @@ function StatsEditGroup({
       <p className="text-sm font-semibold text-slate-300">{title}</p>
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
         {items.map(([key, label]) => (
-          <label key={key} className="space-y-1">
-            <span className="block text-xs font-medium text-slate-400">{label}</span>
-            <Input
-              type="number"
-              min={0}
-              inputMode="numeric"
-              value={stats[key]}
-              onChange={(event) =>
-                onChange({
-                  ...stats,
-                  [key]: normalizeStatValue(event.target.value),
-                })
-              }
-              className="h-12 rounded-xl border-slate-600 bg-[#34445c] text-base font-semibold text-slate-100"
-            />
-          </label>
+          <StatNumberInput key={key} label={label} statKey={key} stats={stats} onChange={onChange} />
         ))}
       </div>
     </div>

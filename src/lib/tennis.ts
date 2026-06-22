@@ -21,6 +21,8 @@ export const emptyStats: Stats = {
   adIn: 0,
   adOut: 0,
   doubleFaults: 0,
+  returnIn: 0,
+  returnOut: 0,
   chances: 0,
   chanceWins: 0,
   volleyTries: 0,
@@ -65,7 +67,7 @@ export function createEditMatchForm(match?: MatchRecord | null): EditMatchForm {
     result: match?.result ?? "win",
     score: match?.score ?? "",
     note: match?.note ?? "",
-    stats: match?.stats ? { ...match.stats } : { ...emptyStats },
+    stats: normalizeStats(match?.stats),
   };
 }
 
@@ -318,6 +320,7 @@ export function matchStatusText(match: MatchRecord) {
 export function buildLiveSummary(stats: Stats) {
   return {
     firstServe: firstServeRate(stats),
+    returnRate: returnRate(stats),
     chanceBall: successRate(stats.chanceWins, stats.chances),
     totalMiss: totalMisses(stats),
   };
@@ -336,6 +339,7 @@ export function buildSummary(matches: MatchRecord[]) {
     chanceBall: successRate(stats.chanceWins, stats.chances),
     deuce: sideRate(stats.deuceIn, stats.deuceOut),
     ad: sideRate(stats.adIn, stats.adOut),
+    returnRate: returnRate(stats),
     volley: successRate(stats.volleyWins, stats.volleyTries),
     doubleFaults: round(stats.doubleFaults / count, 1),
     net: round(stats.net / count, 1),
@@ -353,6 +357,8 @@ export function addStats(left: Stats, right: Stats): Stats {
     adIn: left.adIn + right.adIn,
     adOut: left.adOut + right.adOut,
     doubleFaults: left.doubleFaults + right.doubleFaults,
+    returnIn: left.returnIn + right.returnIn,
+    returnOut: left.returnOut + right.returnOut,
     chances: left.chances + right.chances,
     chanceWins: left.chanceWins + right.chanceWins,
     volleyTries: left.volleyTries + right.volleyTries,
@@ -371,6 +377,10 @@ export function sideRate(success: number, fail: number) {
   return successRate(success, success + fail);
 }
 
+export function returnRate(stats: Stats) {
+  return successRate(stats.returnIn, stats.returnIn + stats.returnOut);
+}
+
 export function successRate(success: number, total: number) {
   if (total <= 0) return 0;
   return Math.round((success / total) * 100);
@@ -387,6 +397,13 @@ export function totalGames(match: MatchRecord) {
 export function perTen(value: number, games: number) {
   if (!games) return "0.0";
   return ((value / games) * 10).toFixed(1);
+}
+
+export function normalizeStats(stats?: Partial<Stats> | null): Stats {
+  return {
+    ...emptyStats,
+    ...stats,
+  };
 }
 
 export function parseScore(score: string) {

@@ -26,6 +26,7 @@ export function HomeScreen({
   tournaments: Tournament[];
   summary: {
     firstServe: number;
+    returnRate: number;
     chanceBall: number;
     doubleFaults: number;
   };
@@ -52,8 +53,9 @@ export function HomeScreen({
 
       <section className="space-y-3">
         <SectionTitle>直近5試合まとめ</SectionTitle>
-        <div className="grid gap-3 sm:grid-cols-3">
+        <div className="grid gap-3 sm:grid-cols-4">
           <SummaryCard label="1stサーブ率" value={`${summary.firstServe}%`} />
+          <SummaryCard label="リターン成功率" value={`${summary.returnRate}%`} />
           <SummaryCard label="チャンスボール成功率" value={`${summary.chanceBall}%`} />
           <SummaryCard label="DF平均" value={`${summary.doubleFaults}本`} />
         </div>
@@ -117,9 +119,10 @@ function TournamentCard({
           <p className="mt-1 text-sm text-slate-400">
             {tournament.date} · {tournament.grade} · {tournament.event}
           </p>
-          <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
+          <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-5">
             <TournamentMetric label="勝敗" value={`${wins}-${losses}`} />
             <TournamentMetric label="1st" value={`${tournamentSummary.firstServe}%`} />
+            <TournamentMetric label="リターン" value={`${tournamentSummary.returnRate}%`} />
             <TournamentMetric label="チャンス" value={`${tournamentSummary.chanceBall}%`} />
             <TournamentMetric label="DF" value={`${tournamentSummary.doubleFaults}本`} />
           </div>

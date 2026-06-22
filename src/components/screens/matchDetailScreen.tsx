@@ -14,6 +14,7 @@ import {
   firstServeRate,
   matchStatusText,
   perTen,
+  returnRate,
   roundLabel,
   sideRate,
   successRate,
@@ -80,6 +81,14 @@ export function MatchDetailScreen({
           ["アドサイド", `${sideRate(match.stats.adIn, match.stats.adOut)}%`],
           ["ダブルフォルト", match.stats.doubleFaults],
           ["10GあたりDF", perTen(match.stats.doubleFaults, games)],
+        ]}
+      />
+      <DetailSection
+        title="リターン"
+        items={[
+          ["リターン成功率", `${returnRate(match.stats)}%`],
+          ["リターンIN", match.stats.returnIn],
+          ["リターンOUT", match.stats.returnOut],
         ]}
       />
       <DetailSection

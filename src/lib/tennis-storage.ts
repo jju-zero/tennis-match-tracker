@@ -1,4 +1,4 @@
-import { emptyStats, firstRound } from "@/lib/tennis";
+import { firstRound, normalizeStats } from "@/lib/tennis";
 import type {
   DrawSize,
   EventType,
@@ -44,7 +44,7 @@ export function readStoredState(): StoredState | null {
     return {
       tournaments,
       activeMatchId: parsedState.activeMatchId ?? null,
-      stats: parsedState.stats ?? { ...emptyStats },
+      stats: normalizeStats(parsedState.stats),
       finishResult: parsedState.finishResult ?? "win",
       finishScore: parsedState.finishScore ?? "",
       finishNote: parsedState.finishNote ?? "",
@@ -151,7 +151,7 @@ function normalizeStoredState(state: Partial<StoredState>): StoredState {
   return {
     tournaments: normalizeTournaments(state.tournaments ?? []),
     activeMatchId: state.activeMatchId ?? null,
-    stats: state.stats ?? { ...emptyStats },
+    stats: normalizeStats(state.stats),
     finishResult: state.finishResult ?? "win",
     finishScore: state.finishScore ?? "",
     finishNote: state.finishNote ?? "",
@@ -219,7 +219,7 @@ function normalizeMatch(match: LegacyMatch, tournamentId: string, drawSize: Draw
     note: match.note ?? "",
     playerGames: match.playerGames ?? 0,
     opponentGames: match.opponentGames ?? 0,
-    stats: match.stats ?? { ...emptyStats },
+    stats: normalizeStats(match.stats),
   };
 }
 

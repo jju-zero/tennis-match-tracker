@@ -431,8 +431,12 @@ export function TennisApp() {
     router.push("/");
   }
 
-  function addStat(key: keyof Stats) {
-    const nextStats = { ...stats, [key]: stats[key] + 1 };
+  function addStat(delta: Partial<Record<keyof Stats, number>>) {
+    const nextStats = { ...stats };
+    Object.entries(delta).forEach(([key, value]) => {
+      const statKey = key as keyof Stats;
+      nextStats[statKey] += value ?? 0;
+    });
 
     setHistory((current) => [stats, ...current].slice(0, 20));
     syncActiveStats(nextStats);

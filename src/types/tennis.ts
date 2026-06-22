@@ -24,6 +24,8 @@ export type Stats = {
   adIn: number;
   adOut: number;
   doubleFaults: number;
+  returnIn: number;
+  returnOut: number;
   chances: number;
   chanceWins: number;
   volleyTries: number;

@@ -1,9 +1,12 @@
+import { useState } from "react";
 import { ArrowLeft, Flag, RotateCcw, Save } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { AppShell, FixedAction } from "@/components/tennis/appLayout";
-import { roundLabel } from "@/lib/tennis";
+import { roundLabel, sideRate } from "@/lib/tennis";
 import type { MatchRecord, Stats } from "@/types/tennis";
+
+type ServeSide = "deuce" | "ad";
 
 export function RecordScreen({
   match,
@@ -18,14 +21,32 @@ export function RecordScreen({
 }: {
   match: MatchRecord;
   stats: Stats;
-  summary: { firstServe: number; chanceBall: number; totalMiss: number };
+  summary: { firstServe: number; returnRate: number; chanceBall: number; totalMiss: number };
   canUndo: boolean;
   onBack: () => void;
   onUndo: () => void;
-  onAdd: (key: keyof Stats) => void;
+  onAdd: (delta: Partial<Record<keyof Stats, number>>) => void;
   onTemporarySave: () => void;
   onFinish: () => void;
 }) {
+  const [serveSide, setServeSide] = useState<ServeSide>("deuce");
+
+  function addServe(result: "in" | "out" | "df") {
+    const isDeuce = serveSide === "deuce";
+    const sideInKey = isDeuce ? "deuceIn" : "adIn";
+    const sideOutKey = isDeuce ? "deuceOut" : "adOut";
+
+    if (result === "in") {
+      onAdd({ firstIn: 1, [sideInKey]: 1 });
+    } else if (result === "out") {
+      onAdd({ firstOut: 1, [sideOutKey]: 1 });
+    } else {
+      onAdd({ firstOut: 1, [sideOutKey]: 1, doubleFaults: 1 });
+    }
+
+    setServeSide(isDeuce ? "ad" : "deuce");
+  }
+
   return (
     <AppShell wide bottomPadding>
       <header className="sticky top-0 z-10 -mx-4 border-b border-slate-700 bg-[#202b3d]/95 px-4 py-3 backdrop-blur sm:-mx-6 sm:px-6">
@@ -50,8 +71,9 @@ export function RecordScreen({
             元に戻す
           </Button>
         </div>
-        <div className="mx-auto mt-3 grid max-w-5xl grid-cols-4 gap-2">
+        <div className="mx-auto mt-3 grid max-w-5xl grid-cols-5 gap-2">
           <LiveStat label="1stサーブ率" value={`${summary.firstServe}%`} tone="text-[#6ee787]" />
+          <LiveStat label="リターン" value={`${summary.returnRate}%`} tone="text-[#69a9ff]" />
           <LiveStat label="チャンスボール" value={`${summary.chanceBall}%`} tone="text-[#69a9ff]" />
           <LiveStat label="ミス" value={`${summary.totalMiss}`} tone="text-[#ffbd6e]" />
           <LiveStat label="DF" value={`${stats.doubleFaults}`} tone="text-[#ff7373]" />
@@ -59,30 +81,32 @@ export function RecordScreen({
       </header>
 
       <div className="space-y-4">
-        <RecordGroup title="サーブ" tone="slate">
-          <RecordButton code="1st" label="1stサーブ 成功" value={stats.firstIn} tone="green" onClick={() => onAdd("firstIn")} />
-          <RecordButton code="1st" label="1stサーブ 失敗" value={stats.firstOut} tone="red" onClick={() => onAdd("firstOut")} />
-          <RecordButton code="D" label="デュースサイド 成功" value={stats.deuceIn} tone="green" onClick={() => onAdd("deuceIn")} />
-          <RecordButton code="D" label="デュースサイド 失敗" value={stats.deuceOut} tone="red" onClick={() => onAdd("deuceOut")} />
-          <RecordButton code="A" label="アドサイド 成功" value={stats.adIn} tone="green" onClick={() => onAdd("adIn")} />
-          <RecordButton code="A" label="アドサイド 失敗" value={stats.adOut} tone="red" onClick={() => onAdd("adOut")} />
-          <RecordButton code="DF" label="ダブルフォルト" value={stats.doubleFaults} tone="red" wide onClick={() => onAdd("doubleFaults")} />
-        </RecordGroup>
+        <ServeRecordGroup
+          stats={stats}
+          serveSide={serveSide}
+          onServeSide={setServeSide}
+          onAddServe={addServe}
+        />
 
         <RecordGroup title="チャンスボール" tone="blue">
-          <RecordButton code="OPP" label="チャンスボール 発生" value={stats.chances} tone="blue" onClick={() => onAdd("chances")} />
-          <RecordButton code="WIN" label="チャンスボール 成功" value={stats.chanceWins} tone="blue" onClick={() => onAdd("chanceWins")} />
+          <RecordButton code="OPP" label="チャンスボール 発生" value={stats.chances} tone="blue" onClick={() => onAdd({ chances: 1 })} />
+          <RecordButton code="WIN" label="チャンスボール 成功" value={stats.chanceWins} tone="blue" onClick={() => onAdd({ chanceWins: 1 })} />
+        </RecordGroup>
+
+        <RecordGroup title="リターン" tone="blue">
+          <RecordButton code="IN" label="リターン IN" value={stats.returnIn} tone="green" onClick={() => onAdd({ returnIn: 1 })} />
+          <RecordButton code="OUT" label="リターン OUT" value={stats.returnOut} tone="red" onClick={() => onAdd({ returnOut: 1 })} />
         </RecordGroup>
 
         <RecordGroup title="ボレー" tone="purple">
-          <RecordButton code="VOL" label="ボレー 試み" value={stats.volleyTries} tone="purple" onClick={() => onAdd("volleyTries")} />
-          <RecordButton code="V" label="ボレー 成功" value={stats.volleyWins} tone="purple" onClick={() => onAdd("volleyWins")} />
+          <RecordButton code="VOL" label="ボレー 試み" value={stats.volleyTries} tone="purple" onClick={() => onAdd({ volleyTries: 1 })} />
+          <RecordButton code="V" label="ボレー 成功" value={stats.volleyWins} tone="purple" onClick={() => onAdd({ volleyWins: 1 })} />
         </RecordGroup>
 
         <RecordGroup title="ミス" tone="orange">
-          <RecordButton code="NET" label="ネット" value={stats.net} tone="orange" onClick={() => onAdd("net")} />
-          <RecordButton code="BASE" label="ベースアウト" value={stats.baseOut} tone="orange" onClick={() => onAdd("baseOut")} />
-          <RecordButton code="SIDE" label="サイドアウト" value={stats.sideOut} tone="orange" onClick={() => onAdd("sideOut")} />
+          <RecordButton code="NET" label="ネット" value={stats.net} tone="orange" onClick={() => onAdd({ net: 1 })} />
+          <RecordButton code="BASE" label="ベースアウト" value={stats.baseOut} tone="orange" onClick={() => onAdd({ baseOut: 1 })} />
+          <RecordButton code="SIDE" label="サイドアウト" value={stats.sideOut} tone="orange" onClick={() => onAdd({ sideOut: 1 })} />
         </RecordGroup>
       </div>
 
@@ -106,6 +130,70 @@ export function RecordScreen({
         </div>
       </FixedAction>
     </AppShell>
+  );
+}
+
+function ServeRecordGroup({
+  stats,
+  serveSide,
+  onServeSide,
+  onAddServe,
+}: {
+  stats: Stats;
+  serveSide: ServeSide;
+  onServeSide: (side: ServeSide) => void;
+  onAddServe: (result: "in" | "out" | "df") => void;
+}) {
+  return (
+    <section>
+      <h2 className="mb-3 text-sm font-semibold text-slate-300">サーブ</h2>
+      <div className="mb-3 grid grid-cols-2 gap-3">
+        <ServeSideButton
+          label="デュース"
+          rate={sideRate(stats.deuceIn, stats.deuceOut)}
+          selected={serveSide === "deuce"}
+          onClick={() => onServeSide("deuce")}
+        />
+        <ServeSideButton
+          label="アド"
+          rate={sideRate(stats.adIn, stats.adOut)}
+          selected={serveSide === "ad"}
+          onClick={() => onServeSide("ad")}
+        />
+      </div>
+      <div className="grid grid-cols-3 gap-3">
+        <RecordButton code="IN" label="1st IN" value={stats.firstIn} tone="green" onClick={() => onAddServe("in")} />
+        <RecordButton code="OUT" label="1st OUT" value={stats.firstOut} tone="red" onClick={() => onAddServe("out")} />
+        <RecordButton code="DF" label="DF" value={stats.doubleFaults} tone="red" onClick={() => onAddServe("df")} />
+      </div>
+    </section>
+  );
+}
+
+function ServeSideButton({
+  label,
+  rate,
+  selected,
+  onClick,
+}: {
+  label: string;
+  rate: number;
+  selected: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      className={`min-h-20 rounded-2xl border p-4 text-left transition active:scale-[0.99] ${
+        selected
+          ? "border-[#6ee787] bg-emerald-950/40 text-[#6ee787]"
+          : "border-slate-700 bg-[#202b3d] text-slate-300"
+      }`}
+      onClick={onClick}
+    >
+      <span className="text-sm font-semibold">{label}</span>
+      <span className="mt-2 block text-2xl font-semibold">{rate}%</span>
+    </button>
   );
 }
 
